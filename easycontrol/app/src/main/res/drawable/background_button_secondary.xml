@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?><!-- 次级按钮背景：浅灰胶囊 + ripple -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/rippleLight">
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/round" />
+            <solid android:color="@color/secondaryContainer" />
+        </shape>
+    </item>
+</ripple>

@@ -1,20 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- 主界面色彩 -->
-  <color name="background">#222325</color>
-  <color name="onBackground">#DEDEDE</color>
-  <color name="onBackgroundSecond">#A7A7A7</color>
-  <color name="cardBackground">#3D3D3D</color>
-  <color name="onCardBackground">#FFFFFF</color>
-  <color name="onCardBackgroundSecond">#8B8B8B</color>
+    <!-- 主界面色彩：深色背景 + 深灰卡片，护眼现代 -->
+    <color name="background">#0F1115</color>
+    <color name="onBackground">#E5E7EB</color>
+    <color name="onBackgroundSecond">#9CA3AF</color>
+    <color name="cardBackground">#1C1F26</color>
+    <color name="onCardBackground">#F3F4F6</color>
+    <color name="onCardBackgroundSecond">#9CA3AF</color>
+    <color name="cardDivider">#2A2E37</color>
 
-  <!-- 特殊色彩 -->
-  <color name="button">#FFFFFF</color>
-  <color name="onButton">#414141</color>
-  <color name="alert">#ca5357</color>
-  <color name="onAlert">#ded8d8</color>
+    <!-- 主题色：深色模式下提亮的翠绿 -->
+    <color name="primary">#34D399</color>
+    <color name="primaryDark">#10B981</color>
+    <color name="onPrimary">#003822</color>
+    <color name="primaryContainer">#064E3B</color>
+    <color name="onPrimaryContainer">#A7F3D0</color>
+    <color name="secondaryContainer">#2A2E37</color>
+    <color name="onSecondaryContainer">#D1D5DB</color>
 
-  <!-- 客户端界面色彩 -->
-  <color name="clientBar">#828282</color>
+    <!-- 特殊色彩 -->
+    <color name="button">#34D399</color>
+    <color name="onButton">#003822</color>
+    <color name="alert">#F87171</color>
+    <color name="onAlert">#450A0A</color>
+    <color name="warning">#FBBF24</color>
+
+    <!-- 客户端界面色彩 -->
+    <color name="clientBar">#9CA3AF</color>
+    <color name="clientNavBar">#CC000000</color>
+    <color name="clientNavIcon">#FFFFFF</color>
 
 </resources>

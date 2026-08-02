@@ -1,63 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:tools="http://schemas.android.com/tools"
-  android:layout_width="match_parent"
-  android:layout_height="wrap_content"
-  android:background="@drawable/background_cron"
-  android:gravity="center"
-  android:orientation="horizontal"
-  android:paddingStart="12dp"
-  android:paddingTop="10dp"
-  android:paddingEnd="12dp"
-  android:paddingBottom="10dp">
-
-  <FrameLayout
-    android:id="@+id/device_icon_background"
-    android:layout_width="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/background_round"
-    android:backgroundTint="@color/color1"
-    android:padding="6dp">
+    android:background="@drawable/background_card_clickable"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/cardPaddingH"
+    android:paddingTop="@dimen/cardPaddingV"
+    android:paddingEnd="@dimen/cardPaddingH"
+    android:paddingBottom="@dimen/cardPaddingV">
 
-    <ImageView
-      android:id="@+id/device_icon"
-      android:layout_width="30dp"
-      android:layout_height="30dp"
-      android:src="@drawable/wifi"
-      android:tint="@color/onColor1" />
-  </FrameLayout>
+    <FrameLayout
+        android:id="@+id/device_icon_background"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/background_round_small"
+        android:backgroundTint="@color/color1"
+        android:padding="11dp">
 
-  <LinearLayout
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:paddingStart="12dp">
+        <ImageView
+            android:id="@+id/device_icon"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@drawable/wifi"
+            android:tint="@color/onColor1" />
+    </FrameLayout>
 
-    <TextView
-      android:id="@+id/device_type"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="1dp"
-      android:includeFontPadding="false"
-      android:maxLines="1"
-      android:text="无线连接"
-      android:textColor="@color/onCardBackgroundSecond"
-      android:textSize="@dimen/smallSmallFont"
-      tools:ignore="HardcodedText" />
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spaceMd"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-    <TextView
-      android:id="@+id/device_name"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:includeFontPadding="false"
-      android:maxLines="1"
-      android:text="设备1"
-      android:textColor="@color/onCardBackground"
-      android:textSize="@dimen/middleFont"
-      tools:ignore="HardcodedText" />
-  </LinearLayout>
+        <TextView
+            android:id="@+id/device_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:text="设备1"
+            android:textColor="@color/onCardBackground"
+            android:textSize="@dimen/middleFont"
+            android:textStyle="bold"
+            tools:ignore="HardcodedText" />
+
+        <TextView
+            android:id="@+id/device_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:text="无线连接"
+            android:textColor="@color/onCardBackgroundSecond"
+            android:textSize="@dimen/smallSmallFont"
+            tools:ignore="HardcodedText" />
+    </LinearLayout>
 
 </LinearLayout>

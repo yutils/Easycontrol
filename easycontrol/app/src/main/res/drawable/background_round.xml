@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!-- 圆形/胶囊按钮背景：圆角24dp -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-  <corners android:radius="@dimen/round" />
-  <solid android:color="@color/cardBackground" />
+    <corners android:radius="@dimen/round" />
+    <solid android:color="@color/button" />
 </shape>

@@ -1,0 +1,1 @@
+.\easycontrol\gradlew.bat --no-daemon assembleDebug -p easycontrol

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?><!-- 投屏工具栏背景：深色半透明圆角浮层 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <corners android:radius="@dimen/cronSmall" />
+    <solid android:color="@color/clientNavBar" />
+</shape>

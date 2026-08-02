@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?><!-- 可点击卡片背景：带ripple涟漪反馈 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/rippleLight">
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/cron" />
+            <solid android:color="@color/cardBackground" />
+        </shape>
+    </item>
+</ripple>

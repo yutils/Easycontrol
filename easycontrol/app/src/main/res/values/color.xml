@@ -1,42 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- 主界面色彩 -->
-  <color name="background">#F3F4F6</color>
-  <color name="onBackground">#242424</color>
-  <color name="onBackgroundSecond">#636564</color>
-  <color name="cardBackground">#FFFFFF</color>
-  <color name="onCardBackground">#000000</color>
-  <color name="onCardBackgroundSecond">#696969</color>
+    <!--主题颜色-->
+    <color name="colorPrimary">@color/styleColor</color>
+    <!--通知栏颜色-->
+    <color name="colorPrimaryDark">@color/styleColor</color>
+    <!--按钮按下，复选框选中颜色-->
+    <color name="colorAccent">@color/styleColor</color>
+    <!--    <color name="styleColor">#049cac</color>-->
+    <color name="styleColor">#397EFD</color>
 
-  <!-- 特殊色彩 -->
-  <color name="button">#2E2E2E</color>
-  <color name="onButton">#E0E0E0</color>
-  <color name="alert">#ca5357</color>
-  <color name="onAlert">#ded8d8</color>
+    <!-- 主界面色彩：柔和浅灰背景 + 纯白卡片，营造清爽现代感 -->
+    <color name="background">#F5F7FA</color>
+    <color name="onBackground">#1A1D23</color>
+    <color name="onBackgroundSecond">#6B7280</color>
+    <color name="cardBackground">#FFFFFF</color>
+    <color name="onCardBackground">#1A1D23</color>
+    <color name="onCardBackgroundSecond">#8B919F</color>
+    <!-- 卡片细分割线 -->
+    <color name="cardDivider">#EFF1F4</color>
 
-  <!-- 客户端界面色彩 -->
-  <color name="clientBar">#828282</color>
-  <color name="blackBacnground">#000000</color>
-  <color name="onBlackBacnground">#FFFFFF</color>
+    <!-- 主题色：现代翠绿 -->
+    <color name="primary">#10B981</color>
+    <color name="primaryDark">#059669</color>
+    <color name="onPrimary">#FFFFFF</color>
+    <color name="primaryContainer">#D1FAE5</color>
+    <color name="onPrimaryContainer">#065F46</color>
+    <!-- 次级按钮/工具栏背景 -->
+    <color name="secondaryContainer">#F3F4F6</color>
+    <color name="onSecondaryContainer">#374151</color>
 
-  <!-- 彩色 -->
-  <color name="color1">#EBF7FF</color>
-  <color name="onColor1">#0D94FD</color>
-  <color name="color2">#FDF0EF</color>
-  <color name="onColor2">#EE4F4B</color>
-  <color name="color3">#FFEFEF</color>
-  <color name="onColor3">#DC0115</color>
-  <color name="color4">#FFF2E9</color>
-  <color name="onColor4">#FE871E</color>
-  <color name="color5">#E7FFF2</color>
-  <color name="onColor5">#03CE5E</color>
-  <color name="color6">#EEEBFE</color>
-  <color name="onColor6">#8561FD</color>
-  <color name="color7">#EAF4FE</color>
-  <color name="onColor7">#39A2FD</color>
-  <color name="color8">#EAF0FE</color>
-  <color name="onColor8">#3A70FC</color>
-  <color name="color9">#ECF9FF</color>
-  <color name="onColor9">#10BEF1</color>
+    <!-- 特殊色彩 -->
+    <color name="button">#10B981</color>
+    <color name="onButton">#FFFFFF</color>
+    <color name="alert">#EF4444</color>
+    <color name="onAlert">#FFFFFF</color>
+    <color name="warning">#F59E0B</color>
+
+    <!-- 客户端界面色彩 -->
+    <color name="clientBar">#9CA3AF</color>
+    <color name="blackBacnground">#000000</color>
+    <color name="onBlackBacnground">#FFFFFF</color>
+    <!-- 投屏导航栏半透明遮罩 -->
+    <color name="clientNavBar">#99000000</color>
+    <color name="clientNavIcon">#FFFFFF</color>
+
+    <!-- 彩色图标背景：降低饱和度，更柔和现代 -->
+    <color name="color1">#ECFDF5</color>
+    <color name="onColor1">#10B981</color>
+    <color name="color2">#FEF2F2</color>
+    <color name="onColor2">#EF4444</color>
+    <color name="color3">#FFF7ED</color>
+    <color name="onColor3">#F97316</color>
+    <color name="color4">#FFFBEB</color>
+    <color name="onColor4">#F59E0B</color>
+    <color name="color5">#F0FDF4</color>
+    <color name="onColor5">#22C55E</color>
+    <color name="color6">#F5F3FF</color>
+    <color name="onColor6">#8B5CF6</color>
+    <color name="color7">#EFF6FF</color>
+    <color name="onColor7">#3B82F6</color>
+    <color name="color8">#ECFEFF</color>
+    <color name="onColor8">#06B6D4</color>
+    <color name="color9">#FDF4FF</color>
+    <color name="onColor9">#D946EF</color>
+
+    <!-- Ripple 涟漪反馈色 -->
+    <color name="rippleLight">#1A000000</color>
+    <color name="rippleDark">#33FFFFFF</color>
 
 </resources>

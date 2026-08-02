@@ -1,54 +1,55 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!-- 设置项-开关：标题 + 辅助说明 + 主题色开关 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:tools="http://schemas.android.com/tools"
-  android:layout_width="match_parent"
-  android:layout_height="wrap_content"
-  android:background="@color/cardBackground"
-  android:gravity="center_vertical"
-  android:orientation="vertical"
-  android:paddingTop="6dp"
-  android:paddingBottom="6dp">
-
-  <LinearLayout
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:background="@color/cardBackground"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/spaceMd"
+    android:paddingBottom="@dimen/spaceMd">
 
-    <FrameLayout
-      android:layout_width="0dp"
-      android:layout_height="wrap_content"
-      android:layout_weight="1">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-      <TextView
-        android:id="@+id/item_text"
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/item_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:text="设置项"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallFont"
+                tools:ignore="HardcodedText" />
+        </FrameLayout>
+
+        <Switch
+            android:id="@+id/item_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spaceSm"
+            android:thumbTint="@color/switch_thumb"
+            android:trackTint="@color/switch_track"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/item_detail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="设置项"
-        android:textColor="@color/onCardBackground"
-        android:textSize="@dimen/smallFont"
+        android:layout_marginTop="@dimen/spaceXs"
+        android:includeFontPadding="false"
+        android:text="辅助说明"
+        android:textColor="@color/onCardBackgroundSecond"
+        android:textSize="@dimen/smallSmallFont"
         tools:ignore="HardcodedText" />
-    </FrameLayout>
-
-    <Switch
-      android:id="@+id/item_switch"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginStart="10dp"
-      android:thumbTint="@color/button"
-      android:thumbTintMode="multiply"
-      android:trackTint="@color/button"
-      android:trackTintMode="multiply"
-      tools:ignore="UseSwitchCompatOrMaterialXml" />
-  </LinearLayout>
-
-  <TextView
-    android:id="@+id/item_detail"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="10dp"
-    android:text="辅助说明"
-    android:textColor="@color/onCardBackgroundSecond"
-    android:textSize="@dimen/smallSmallFont"
-    tools:ignore="HardcodedText" />
 
 </LinearLayout>

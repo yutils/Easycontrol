@@ -1,15 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version="1.0" encoding="utf-8"?><!-- 设置项-纯文本：可点击的列表项 -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:tools="http://schemas.android.com/tools"
-  android:id="@+id/text"
-  android:layout_width="match_parent"
-  android:layout_height="wrap_content"
-  android:background="@color/cardBackground"
-  android:gravity="center_vertical"
-  android:paddingTop="6dp"
-  android:paddingBottom="6dp"
-  android:text="前往官网"
-  android:textColor="@color/onCardBackground"
-  android:textSize="@dimen/smallFont"
-  tools:ignore="HardcodedText" />
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/background_card_clickable"
+    android:backgroundTint="@color/cardBackground"
+    android:gravity="center_vertical"
+    android:includeFontPadding="false"
+    android:paddingTop="@dimen/spaceMd"
+    android:paddingBottom="@dimen/spaceMd"
+    android:text="前往官网"
+    android:textColor="@color/onCardBackground"
+    android:textSize="@dimen/smallFont"
+    tools:ignore="HardcodedText" />

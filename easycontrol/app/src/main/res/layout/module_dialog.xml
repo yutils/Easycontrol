@@ -1,6 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!-- 对话框容器：透明背景的滚动容器，承载内部卡片视图 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="wrap_content"
-  android:layout_height="wrap_content"
-  android:padding="10dp"
-  android:paddingBottom="10dp" />
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:clipToPadding="false"
+    android:paddingStart="@dimen/spaceXl"
+    android:paddingTop="@dimen/spaceXxl"
+    android:paddingEnd="@dimen/spaceXl"
+    android:paddingBottom="@dimen/spaceXxl"
+    android:scrollbars="none" />

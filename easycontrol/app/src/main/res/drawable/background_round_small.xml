@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?><!-- 小圆角背景：用于图标容器等小尺寸元素 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <corners android:radius="@dimen/roundSmall" />
+    <solid android:color="@color/secondaryContainer" />
+</shape>

@@ -1,54 +1,111 @@
-# 易控(Easycontrol)
+# 易控 EasyControl
 
-## 注意
- Gitee和GitHub代码将保持同步，请自行选择。
-- [Gitee地址](https://gitee.com/mingzhixianweb/easycontrol)
-- [Github地址](https://github.com/mingzhixian/Easycontrol)
+> 安卓端控制安卓端的远程投屏工具，基于 Scrcpy 协议魔改实现。
 
-## 简介
-本软件基于开源项目Scrcpy，对其进行了大量魔改，实现了其安卓客户端，并添加了一些功能，实现了安卓端控制安卓端。
+本项目 Fork 自 [mingzhixian/Easycontrol](https://github.com/mingzhixian/Easycontrol)，在此对原作者表示衷心感谢。原项目已多年未更新，本项目在其基础上进行了大量现代化改造与 Bug 修复，并将持续维护。
 
-## 功能特色
+**永久免费 · 开源 · 持续维护**
+
+| ![Img1](pic/screenshot/1.jpg) | ![Img1](pic/screenshot/3.jpg) | ![Img1](pic/screenshot/5.jpg) |
+| -- | -- | -- |
+
+
+## 与原版的差异
+### 一、概要
+- 移除捐赠 / 激活逻辑，永久免费使用
+- 兼容被开端为安卓15以上系统
+- Scrcpy升级到最新版
+
+### 二、UI 全面现代化
+- 引入appcompat主题（APK体积变大）
+- 全新设计语言：绿色主调色彩系统，支持深色模式
+- 精细化尺寸系统：统一字号、间距、圆角、阴影层次
+- 卡片式布局：圆角卡片 + 细描边，视觉更清爽
+- Ripple 涟漪反馈：所有可点击元素带触摸反馈
+- 重做全部核心页面：首页、设备详情、设置、投屏、悬浮窗、加载弹窗、对话框
+- 投屏界面统一半透明深色浮层 + 白色图标，关闭键红色高亮
+- 开关组件适配主题色（开启绿色 / 关闭灰色，不再与背景融为一体）
+- 横竖屏自适应布局优化
+
+### 三、Android 15 适配
+- 适配 `SurfaceControl` API 变更：`createDisplay`/`destroyDisplay` 迁移至 `DisplayControl.createVirtualDisplay`/`destroyVirtualDisplay`
+- 适配 `SurfaceControl` 静态方法移除：`setDisplaySurface`/`setDisplayProjection`/`setDisplayLayerStack` 改用 `SurfaceControl.Transaction` 对象（仅 Android 15+ 启用，Android 14 及以下保留静态方法，兼容性最佳）
+- 适配 `AudioRecord` 的 `native_setup` 签名变更（Android 14 QPR3 / 15）
+- 适配 `WindowManager` 的 `caller` 参数变更
+- 禁用 Server 模块 R8 混淆，解决 Android 15 ART 运行时 ClassNotFoundException
+
+### 四、Scrcpy 协议同步至 v4.x
+- 低延迟编码参数：`KEY_PRIORITY`、`KEY_LATENCY`
+- 非侵入式防息屏：使用 `PowerManager.userActivity` 替代修改 `screen_off_timeout`
+- 视频编码参数优化
+
+### 五、Bug 修复（40+ 项）
+**崩溃与资源泄漏**
+- 修复 `Client.close()` 连接失败时 NPE 导致资源无法释放
+- 修复 `ClientStream` 未关闭 ADB Socket 和 Shell 进程导致端口占用、重连失败
+- 修复 `MyBroadcastReceiver.updateUSB` 中 `return` 误用为 `continue`，导致后续 USB 设备被跳过
+- 修复 `MainActivity` URI 为空时 NPE 崩溃
+- 修复 `DeviceDetailActivity` 未处理 `Integer.parseInt` 异常
+- 修复 `FullActivity` client 为 null 时死锁
+
+**逻辑错误**
+- 修复 `Device.java` appStackId 条件判断反转
+- 修复 `ClientController` switch 语句 default 穿透
+- 修复 `DbHelper` 删除设备后默认名称重复
+- 修复 `DeviceListAdapter` 随机颜色导致列表闪烁
+
+**连接稳定性**
+- 启动 Server 前清理残留进程，避免端口冲突
+- 连接断开时正确释放所有资源
+
+### 六、功能调整
+- 启动时主动申请所需权限（悬浮窗、文件读取、前台服务、通知）
+- 设备名称默认按序号命名（设备1、设备2、设备3）
+- 首页设备列表同时显示设备名称与 IP 地址
+- 加载弹窗重构为正方形布局，显示"加载中"
+
+## 七、功能特色
 - 使用简单
 - 支持音频传输
 - 多设备连接
 - 支持有线连接
 - 多设备剪切板同步
-- 多设备共享主控端物理键盘(需配合微信输入法或QQ输入法等输入中文)
-- 启动迅速
-- 低延迟
+- 多设备共享主控端物理键盘
+- 启动迅速，低延迟
 - 支持分辨率自适应
 - 良好的旋转支持
 - 支持小窗显示与全屏显示
+- Android 14 / 15 完整适配
 
-## 使用说明
-- [点击此处查看](https://gitee.com/mingzhixianweb/easycontrol/blob/master/HOW_TO_USE.md)
+## 八、构建
+- gradle构建环境升级的最新版
+- 升级到java17
+本项目使用 Android Studio + Gradle 构建。如需自行编译：
 
-## 软件下载
-- [点击此处查看](https://gitee.com/mingzhixianweb/easycontrol/releases)
+```bash
+# Windows
+.\easycontrol\gradlew.bat assembleDebug -p easycontrol
 
-## 激活
-代码是开源的，但官方打包的安装包需要激活才可使用，激活的步骤请参考[此页面](https://gitee.com/mingzhixianweb/easycontrol/blob/master/DONATE.md)
+# Linux / macOS
+./easycontrol/gradlew assembleDebug -p easycontrol
+```
 
-## 截图
-<center class="half">
- <img src="https://gitee.com/mingzhixianweb/easycontrol/raw/master/pic/screenshot/1.jpg" width="150"/><img src="https://gitee.com/mingzhixianweb/easycontrol/raw/master/pic/screenshot/2.jpg" width="150"/><img src="https://gitee.com/mingzhixianweb/easycontrol/raw/master/pic/screenshot/3.jpg" width="150"/>
- <img src="https://gitee.com/mingzhixianweb/easycontrol/raw/master/pic/screenshot/4.jpg" width="150"/><img src="https://gitee.com/mingzhixianweb/easycontrol/raw/master/pic/screenshot/5.jpg" width="150"/><img src="https://gitee.com/mingzhixianweb/easycontrol/raw/master/pic/screenshot/6.jpg" width="150"/>
- <img src="https://gitee.com/mingzhixianweb/easycontrol/raw/master/pic/screenshot/7.jpg" width="150"/><img src="https://gitee.com/mingzhixianweb/easycontrol/raw/master/pic/screenshot/8.jpg" width="150"/>
-</center>
+编译产物：`easycontrol/app/build/outputs/apk/debug/app-debug.apk`
 
-## 构建
-如果您想要自己构建，请注意以下几项
-- 请遵循本项目的开源协议
-- 我去除了官方打包加入的激活模块相关的代码文件，所以会有报错，请自行注释掉报错代码即可
+## 相关项目
+
+- **原项目**：[mingzhixian/Easycontrol](https://github.com/mingzhixian/Easycontrol) — 致敬原作者
+- **Scrcpy**：[Genymobile/scrcpy](https://github.com/Genymobile/scrcpy) — 本项目基于的投屏协议
+- **ADB 协议文档**：[cstyan/adbDocumentation](https://github.com/cstyan/adbDocumentation)
+
+## 开源协议
+
+遵循原项目开源协议，保留原作者版权声明。
 
 ## 反馈
-请在Github或Gitee提出Issue，或进入易控反馈群反馈BUG或建议。
 
-<img src="https://gitee.com/mingzhixianweb/easycontrol/raw/master/pic/other/qq_issue.webp" width="200px">
-<img src="https://gitee.com/mingzhixianweb/easycontrol/raw/master/pic/other/wechat_issue.png" width="200px">
+请在 GitHub 提出 Issue：[https://github.com/yutils/Easycontrol/issues](https://github.com/yutils/Easycontrol/issues)
 
-## 附加
-- ADB协议说明(官方的文档写的真烂，感谢cstyan大佬) [点击前往](https://github.com/cstyan/adbDocumentation)
-- Scrcpy官方地址 [点击前往](https://github.com/Genymobile/scrcpy)
-- 易控车机版(第三方用户专为车机进行了调整优化) [点击前往](https://github.com/eiyooooo/Easycontrol_For_Car)
+## 项目地址
+
+**GitHub**：[https://github.com/yutils/Easycontrol](https://github.com/yutils/Easycontrol)

@@ -1,0 +1,17 @@
+*.iml
+.gradle
+.idea
+local.properties
+
+app/build
+app/.gradle
+app/debug
+app/release
+app/src/main/res/raw/easycontrol_server.jar
+
+server/build
+server/.gradle
+
+app/src/main/java/top/saymzx/easycontrol/app/helper/ActiveHelper.java
+cloud
+doc

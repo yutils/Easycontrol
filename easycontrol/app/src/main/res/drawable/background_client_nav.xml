@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?><!-- 投屏导航栏背景：半透明深色，营造浮层效果 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/clientNavBar" />
+</shape>

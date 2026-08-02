@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?><!-- 投屏工具栏按钮背景：可点击圆角 + ripple反馈 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/rippleDark">
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/cronSmall" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+</ripple>

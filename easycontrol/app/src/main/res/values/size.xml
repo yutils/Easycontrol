@@ -1,10 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <dimen name="cron">14dp</dimen>
-  <dimen name="round">50dp</dimen>
-  <!--字体-->
-  <dimen name="largeFont">26sp</dimen>
-  <dimen name="middleFont">22sp</dimen>
-  <dimen name="smallFont">18sp</dimen>
-  <dimen name="smallSmallFont">14sp</dimen>
+    <!-- 圆角：分层级，更柔和现代 -->
+    <dimen name="cron">16dp</dimen>
+    <dimen name="cronSmall">12dp</dimen>
+    <dimen name="cronLarge">20dp</dimen>
+    <dimen name="round">24dp</dimen>
+    <dimen name="roundSmall">16dp</dimen>
+
+    <!-- 字体：精细层次，标题/正文/辅助/微小 -->
+    <dimen name="largeFont">26sp</dimen>
+    <dimen name="middleFont">20sp</dimen>
+    <dimen name="smallFont">16sp</dimen>
+    <dimen name="smallSmallFont">13sp</dimen>
+    <dimen name="tinyFont">11sp</dimen>
+
+    <!-- 统一间距规范 -->
+    <dimen name="spaceXs">4dp</dimen>
+    <dimen name="spaceSm">8dp</dimen>
+    <dimen name="spaceMd">12dp</dimen>
+    <dimen name="spaceLg">16dp</dimen>
+    <dimen name="spaceXl">20dp</dimen>
+    <dimen name="spaceXxl">28dp</dimen>
+
+    <!-- 卡片内边距 -->
+    <dimen name="cardPaddingH">16dp</dimen>
+    <dimen name="cardPaddingV">14dp</dimen>
+
+    <!-- 列表项高度 -->
+    <dimen name="listItemHeight">56dp</dimen>
+
+    <!-- 图标尺寸 -->
+    <dimen name="iconSm">18dp</dimen>
+    <dimen name="iconMd">24dp</dimen>
+    <dimen name="iconLg">30dp</dimen>
+
+    <!-- 阴影高度 -->
+    <dimen name="elevationSm">2dp</dimen>
+    <dimen name="elevationMd">4dp</dimen>
+    <dimen name="elevationLg">8dp</dimen>
+
 </resources>

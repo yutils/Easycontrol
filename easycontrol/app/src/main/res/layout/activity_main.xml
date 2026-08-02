@@ -1,90 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:tools="http://schemas.android.com/tools"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent"
-  android:background="@color/background">
-
-  <ImageView
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_gravity="center"
-    android:alpha="0.5"
-    android:padding="15dp"
-    android:scaleType="fitEnd"
-    android:src="@drawable/main_background" />
+    android:background="@color/background">
 
-  <LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:alpha="0.35"
+        android:padding="15dp"
+        android:scaleType="fitEnd"
+        android:src="@drawable/main_background" />
 
     <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:gravity="center_vertical"
-      android:orientation="horizontal"
-      android:paddingStart="20dp"
-      android:paddingTop="10dp"
-      android:paddingEnd="5dp"
-      android:paddingBottom="10dp">
-
-      <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:text="@string/app_name_simple"
-          android:textColor="@color/onBackground"
-          android:textSize="@dimen/largeFont"
-          android:textStyle="bold" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/spaceXl"
+            android:paddingTop="@dimen/spaceLg"
+            android:paddingEnd="@dimen/spaceMd"
+            android:paddingBottom="@dimen/spaceLg">
 
-        <TextView
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:maxLines="1"
-          android:text="@string/main_poem"
-          android:textColor="@color/onBackgroundSecond"
-          android:textSize="@dimen/smallSmallFont" />
-      </LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-      <ImageView
-        android:id="@+id/button_set"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:padding="10dp"
-        android:src="@drawable/bars"
-        android:tint="@color/onBackground" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name_simple"
+                    android:textColor="@color/onBackground"
+                    android:textSize="@dimen/largeFont"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:maxLines="1"
+                    android:text="@string/main_poem"
+                    android:textColor="@color/onBackgroundSecond"
+                    android:textSize="@dimen/smallSmallFont" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/button_set"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/background_button_secondary"
+                android:padding="11dp"
+                android:src="@drawable/bars"
+                android:tint="@color/onSecondaryContainer" />
+
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/devices_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:divider="#00000000"
+            android:dividerHeight="@dimen/spaceMd"
+            android:paddingStart="@dimen/spaceLg"
+            android:paddingEnd="@dimen/spaceLg"
+            android:paddingBottom="80dp"
+            android:scrollbars="none"
+            tools:listitem="@layout/item_devices_item" />
 
     </LinearLayout>
 
-    <ListView
-      android:id="@+id/devices_list"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:layout_marginTop="6dp"
-      android:divider="#00000000"
-      android:dividerHeight="14dp"
-      android:padding="15dp"
-      tools:listitem="@layout/item_devices_item" />
-
-  </LinearLayout>
-
-  <ImageView
-    android:id="@+id/button_add"
-    android:layout_width="60dp"
-    android:layout_height="60dp"
-    android:layout_gravity="center_horizontal|bottom"
-    android:layout_marginBottom="40dp"
-    android:background="@drawable/background_round"
-    android:backgroundTint="@color/button"
-    android:elevation="8dp"
-    android:padding="18dp"
-    android:src="@drawable/plus"
-    android:tint="@color/onButton" />
+    <ImageView
+        android:id="@+id/button_add"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/background_button_primary"
+        android:elevation="@dimen/elevationLg"
+        android:padding="18dp"
+        android:src="@drawable/plus"
+        android:tint="@color/onButton" />
 </FrameLayout>
