@@ -29,7 +29,7 @@ public class Device {
     public boolean smallToMiniOnRunning = false;
     public boolean fullToMiniOnRunning = true;
     public boolean miniTimeoutOnRunning = false;
-    public boolean lockOnClose = true;
+    public boolean lockOnClose = false;
     public boolean lightOnClose = false;
     public boolean reconnectOnClose = false;
     public int customResolutionWidth = 1080;

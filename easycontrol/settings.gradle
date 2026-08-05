@@ -10,7 +10,6 @@ dependencyResolutionManagement {
   repositories {
     google()
     mavenCentral()
-    maven { url 'http://maven.kotlinx.com:8081/repository/maven-public'; allowInsecureProtocol = true }
   }
 }
 rootProject.name = "易控•雨季版"

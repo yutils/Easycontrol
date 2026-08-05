@@ -15,4 +15,5 @@ easycontrol/server/.gradle
 easycontrol/app/src/main/java/top/saymzx/easycontrol/app/helper/ActiveHelper.java
 easycontrol/cloud
 easycontrol/doc
+easycontrol/build
 /.idea

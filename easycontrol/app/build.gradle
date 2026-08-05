@@ -58,5 +58,5 @@ androidComponents {
 }
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'com.kotlinx:appUpdate:0.0.3'
+    implementation 'com.kotlinx:appUpdate:0.0.5'
 }

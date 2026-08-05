@@ -69,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
             checkUpdate = savedInstanceState.getBoolean("checkUpdate", false);
         }
         if (checkUpdate) {
+            //更新地址
+            AppUpdate.baseUrl = "http://apk.kotlinx.com:9999";
+            AppUpdate.showCheckUpdateErrorToast = false;
             AppUpdate apk = new AppUpdate();
             apk.checkAndUpdate(this);
             checkUpdate = false;
@@ -129,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && requestCode == 1) {
             Uri uri = data.getData();
             if (uri == null) deviceListAdapter.pushFile(null, null);
-            ;
             try {
                 String fileName = "easycontrol_push_file";
                 ContentResolver contentProvider = getContentResolver();
@@ -145,12 +147,11 @@ public class MainActivity extends AppCompatActivity {
                 deviceListAdapter.pushFile(inputStream, fileName);
             } catch (IOException ignored) {
                 deviceListAdapter.pushFile(null, null);
-                ;
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
-    
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
