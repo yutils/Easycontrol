@@ -52,7 +52,7 @@ android {
 androidComponents {
     onVariants(selector().all()) { variant ->
         variant.outputs.forEach { output ->
-            output.outputFileName.set("Yi•kong_v${output.versionName.get()}_${variant.buildType}.apk")
+            output.outputFileName.set("Yikong•Yuji_v${output.versionName.get()}_${variant.buildType}.apk")
         }
     }
 }
