@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/background">
 
     <ImageView
@@ -61,7 +62,7 @@
                 android:background="@drawable/background_button_secondary"
                 android:padding="11dp"
                 android:src="@drawable/bars"
-                android:tint="@color/onSecondaryContainer" />
+                app:tint="@color/onSecondaryContainer" />
 
         </LinearLayout>
 
@@ -90,5 +91,5 @@
         android:elevation="@dimen/elevationLg"
         android:padding="18dp"
         android:src="@drawable/plus"
-        android:tint="@color/onButton" />
+        app:tint="@color/onButton" />
 </FrameLayout>

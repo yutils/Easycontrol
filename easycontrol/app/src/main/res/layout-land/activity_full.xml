@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/blackBacnground"
     android:keepScreenOn="true"
     tools:context=".client.view.FullActivity">
@@ -35,8 +36,18 @@
             android:background="@drawable/background_client_nav"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingTop="64dp"
+            android:paddingTop="@dimen/spaceSm"
             android:paddingBottom="@dimen/spaceLg">
+
+            <ImageView
+                android:id="@+id/button_more"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/background_client_button"
+                android:focusable="false"
+                android:padding="12dp"
+                android:src="@drawable/more"
+                app:tint="@color/onBlackBacnground" />
 
             <ImageView
                 android:id="@+id/button_switch"
@@ -47,7 +58,7 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/square"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_home"
@@ -58,7 +69,7 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/o"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_back"
@@ -69,7 +80,7 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/caret_left"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_auto_rotate"
@@ -80,29 +91,18 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/un_auto"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
         </LinearLayout>
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/button_more"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_gravity="top|start"
-        android:background="@drawable/background_client_button"
-        android:focusable="false"
-        android:padding="12dp"
-        android:src="@drawable/more"
-        android:tint="@color/onBlackBacnground" />
 
     <LinearLayout
         android:id="@+id/bar_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|start"
-        android:layout_marginStart="@dimen/spaceMd"
-        android:layout_marginTop="56dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="@dimen/spaceSm"
+        android:layout_marginEnd="56dp"
         android:background="@drawable/background_client_bar"
         android:elevation="@dimen/elevationMd"
         android:orientation="vertical"
@@ -122,7 +122,7 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/share"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_mini"
@@ -133,7 +133,7 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/minus"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_small"
@@ -144,7 +144,7 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/window_restore"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_close"
@@ -155,7 +155,7 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/x"
-                android:tint="@color/alert" />
+                app:tint="@color/alert" />
         </LinearLayout>
 
         <LinearLayout
@@ -173,7 +173,7 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/horizontal_rotate"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_nav_bar"
@@ -184,7 +184,7 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/not_equal"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_power"
@@ -195,7 +195,7 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/power"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_light"
@@ -206,7 +206,7 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/lightbulb_off"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
         </LinearLayout>
 
     </LinearLayout>

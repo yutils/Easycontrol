@@ -3,6 +3,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/background_cron"
     android:orientation="vertical"
     android:padding="@dimen/cardPaddingH">
@@ -44,7 +45,7 @@
                 android:layout_height="20dp"
                 android:layout_marginStart="@dimen/spaceSm"
                 android:src="@drawable/rss"
-                android:tint="@color/onButton" />
+                app:tint="@color/onButton" />
         </LinearLayout>
 
         <LinearLayout
@@ -74,7 +75,7 @@
                     android:layout_height="20dp"
                     android:layout_marginStart="@dimen/spaceSm"
                     android:src="@drawable/dir_floder"
-                    android:tint="@color/onSecondaryContainer" />
+                    app:tint="@color/onSecondaryContainer" />
             </LinearLayout>
 
             <Space
@@ -104,7 +105,7 @@
                     android:layout_height="20dp"
                     android:layout_marginStart="@dimen/spaceSm"
                     android:src="@drawable/refresh"
-                    android:tint="@color/onSecondaryContainer" />
+                    app:tint="@color/onSecondaryContainer" />
             </LinearLayout>
         </LinearLayout>
 
@@ -136,7 +137,7 @@
                     android:layout_height="20dp"
                     android:layout_marginStart="@dimen/spaceSm"
                     android:src="@drawable/editor"
-                    android:tint="@color/onSecondaryContainer" />
+                    app:tint="@color/onSecondaryContainer" />
             </LinearLayout>
 
             <Space
@@ -166,7 +167,7 @@
                     android:layout_height="20dp"
                     android:layout_marginStart="@dimen/spaceSm"
                     android:src="@drawable/ashbin"
-                    android:tint="@color/onAlert" />
+                    app:tint="@color/onAlert" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

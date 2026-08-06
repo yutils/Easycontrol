@@ -12,6 +12,7 @@ import android.view.WindowManager;
 import top.saymzx.easycontrol.app.MainActivity;
 import top.saymzx.easycontrol.app.adb.AdbKeyPair;
 import top.saymzx.easycontrol.app.helper.DbHelper;
+import top.saymzx.easycontrol.app.helper.MyBroadcastReceiver;
 import top.saymzx.easycontrol.app.helper.PublicTools;
 
 public class AppData {
@@ -19,6 +20,7 @@ public class AppData {
     public static Context applicationContext;
     public static MainActivity mainActivity;
     public static Handler uiHandler;
+    public static MyBroadcastReceiver myBroadcastReceiver;
 
     // 数据库工具库
     public static DbHelper dbHelper;

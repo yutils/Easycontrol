@@ -24,6 +24,10 @@ public class ClientPlayer {
     private static final int AUDIO_EVENT = 1;
     private static final int CLIPBOARD_EVENT = 2;
     private static final int CHANGE_SIZE_EVENT = 3;
+    private static final int KEEP_ALIVE_EVENT = 4;
+    // 心跳超时检测：超过该时间未收到任何数据(含心跳响应)则认为连接断开
+    private static final int KEEP_ALIVE_TIMEOUT = 1000 * 10;
+    private volatile long lastReceiveTime = System.currentTimeMillis();
 
     public ClientPlayer(String uuid, ClientStream clientStream) {
         clientController = Client.getClientController(uuid);
@@ -41,21 +45,32 @@ public class ClientPlayer {
         AudioDecode audioDecode = null;
         boolean useOpus = true;
         try {
-            if (clientStream.readByteFromMain() == 1)
+            byte audioFlag = clientStream.readByteFromMain();
+            PublicTools.logToast("player", "audio flag=" + audioFlag, false);
+            if (audioFlag == 1)
                 useOpus = clientStream.readByteFromMain() == 1;
+            lastReceiveTime = System.currentTimeMillis();
             // 循环处理报文
             while (!Thread.interrupted()) {
-                switch (clientStream.readByteFromMain()) {
+                byte type = clientStream.readByteFromMain();
+                lastReceiveTime = System.currentTimeMillis();
+                switch (type) {
                     case AUDIO_EVENT:
                         ByteBuffer audioFrame = clientStream.readFrameFromMain();
                         if (audioDecode != null) audioDecode.decodeIn(audioFrame);
-                        else audioDecode = new AudioDecode(useOpus, audioFrame, playHandler);
+                        else {
+                            audioDecode = new AudioDecode(useOpus, audioFrame, playHandler);
+                            PublicTools.logToast("player", "AudioDecode created, useOpus=" + useOpus, false);
+                        }
                         break;
                     case CLIPBOARD_EVENT:
                         clientController.handleAction("setClipBoard", clientStream.readByteArrayFromMain(clientStream.readIntFromMain()), 0);
                         break;
                     case CHANGE_SIZE_EVENT:
                         clientController.handleAction("updateVideoSize", clientStream.readByteArrayFromMain(8), 0);
+                        break;
+                    case KEEP_ALIVE_EVENT:
+                        // 心跳响应，无需处理
                         break;
                 }
             }
@@ -90,5 +105,10 @@ public class ClientPlayer {
         mainStreamInThread.interrupt();
         videoStreamInThread.interrupt();
         playHandlerThread.interrupt();
+    }
+
+    // 检查心跳是否超时（连接异常断开）
+    public boolean isKeepAliveTimeout() {
+        return System.currentTimeMillis() - lastReceiveTime > KEEP_ALIVE_TIMEOUT;
     }
 }

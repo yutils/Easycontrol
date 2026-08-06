@@ -16,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.kotlinx.appUpdate.AppUpdate;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import top.saymzx.easycontrol.app.client.Client;
@@ -43,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         AppData.init(this);
+        AppData.myBroadcastReceiver = myBroadcastReceiver;
         ViewTools.setStatusAndNavBar(this);
         ViewTools.setLocale(this);
         // 主动申请所需权限
@@ -129,10 +129,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK && requestCode == 1) {
+        if (resultCode == RESULT_OK && requestCode == 1 && data != null) {
             Uri uri = data.getData();
-            if (uri == null) deviceListAdapter.pushFile(null, null);
-            try {
+            if (uri == null) {
+                deviceListAdapter.pushFile(null, null);
+            } else try {
                 String fileName = "easycontrol_push_file";
                 ContentResolver contentProvider = getContentResolver();
                 InputStream inputStream = contentProvider.openInputStream(uri);
@@ -145,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 deviceListAdapter.pushFile(inputStream, fileName);
-            } catch (IOException ignored) {
+            } catch (Exception ignored) {
                 deviceListAdapter.pushFile(null, null);
             }
         }

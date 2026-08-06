@@ -28,6 +28,8 @@ public class SetActivity extends AppCompatActivity {
 
     // 设置默认值
     private void drawUi() {
+        // 通用设置入口
+        activitySetBinding.setDisplay.addView(ViewTools.createTextCard(this, getString(R.string.set_general), () -> startActivity(new Intent(this, GeneralSetActivity.class))).getRoot());
         // 其他
         activitySetBinding.setOther.addView(ViewTools.createTextCard(this, getString(R.string.set_other_ip), () -> startActivity(new Intent(this, IpActivity.class))).getRoot());
         activitySetBinding.setOther.addView(ViewTools.createTextCard(this, getString(R.string.set_other_custom_key), () -> startActivity(new Intent(this, AdbKeyActivity.class))).getRoot());

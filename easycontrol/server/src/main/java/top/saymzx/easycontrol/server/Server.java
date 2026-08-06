@@ -185,6 +185,8 @@ public final class Server {
                         break;
                     case 4:
                         lastKeepAliveTime = System.currentTimeMillis();
+                        // 回复心跳响应，让客户端检测连接状态
+                        Server.writeMain(ByteBuffer.wrap(new byte[]{4}));
                         break;
                     case 5:
                         Device.changeResolution(mainInputStream.readFloat());

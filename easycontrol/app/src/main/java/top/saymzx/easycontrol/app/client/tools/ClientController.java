@@ -6,10 +6,8 @@ import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.SurfaceTexture;
-import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.provider.Settings;
 import android.util.Pair;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -154,6 +152,13 @@ public class ClientController implements TextureView.SurfaceTextureListener {
         handleAction("checkClipBoard", null, 0);
         handleAction("keepAlive", null, 0);
         handleAction("checkSizeAndSite", null, 0);
+        // 心跳超时检测：如果超过10秒未收到服务端任何数据，则认为连接已断开
+        ClientPlayer player = Client.getClientPlayer(device.uuid);
+        if (player != null && player.isKeepAliveTimeout()) {
+            byte[] err = ("controller" + AppData.applicationContext.getString(R.string.toast_stream_closed) + "keepAliveTimeout").getBytes(StandardCharsets.UTF_8);
+            Client.sendAction(device.uuid, "close", ByteBuffer.wrap(err), 0);
+            return;
+        }
         mainHandler.postDelayed(this::otherService, 2000);
     }
 
@@ -197,9 +202,9 @@ public class ClientController implements TextureView.SurfaceTextureListener {
 
     // 检查悬浮窗权限
     private boolean noFloatPermission() {
-        // 检查悬浮窗权限，防止某些设备如鸿蒙不兼容
+        // 兼容安卓6以下部分国产ROM检测不准
         try {
-            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(AppData.applicationContext);
+            return !PublicTools.checkOverlayPermission(AppData.applicationContext);
         } catch (Exception ignored) {
             return false;
         }
@@ -294,6 +299,14 @@ public class ClientController implements TextureView.SurfaceTextureListener {
             // 竖向最大不会超出
         else
             surfaceSize = new Pair<>(videoSize.first * maxSize.second / videoSize.second, maxSize.second);
+        // 全屏拉伸填充：全屏模式下画面与屏幕比例接近时拉伸填满
+        if (fullView != null && AppData.setting.getFillFull()) {
+            float videoRatio = (float) videoSize.first / videoSize.second;
+            float screenRatio = (float) maxSize.first / maxSize.second;
+            if (Math.abs(videoRatio - screenRatio) < 0.15f) {
+                surfaceSize = new Pair<>(maxSize.first, maxSize.second);
+            }
+        }
         // 更新大小
         ViewGroup.LayoutParams layoutParams = textureView.getLayoutParams();
         layoutParams.width = surfaceSize.first;
@@ -329,10 +342,13 @@ public class ClientController implements TextureView.SurfaceTextureListener {
     private final long[] pointerDownTime = new long[10];
 
     private void createTouchPacket(MotionEvent event, int action, int i) {
+        // 防止数组越界（actionIndex 或 pointerId 超出数组范围）
+        if (i < 0 || i >= pointerDownTime.length) return;
+        int p = event.getPointerId(i);
+        if (p < 0 || p >= pointerDownTime.length) return;
         int offsetTime = (int) (event.getEventTime() - pointerDownTime[i]);
         int x = (int) event.getX(i);
         int y = (int) event.getY(i);
-        int p = event.getPointerId(i);
         if (action == MotionEvent.ACTION_MOVE) {
             // 减少发送小范围移动(小于4的圆内不做处理)
             int flipY = pointerList[10 + p] - y;

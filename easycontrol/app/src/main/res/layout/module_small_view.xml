@@ -2,6 +2,7 @@
 <top.saymzx.easycontrol.app.client.view.MyViewForSmallView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="wrap_content">
 
     <EditText
@@ -46,7 +47,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/square"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_home"
@@ -57,7 +58,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/o"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_back"
@@ -68,7 +69,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/caret_left"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
         </LinearLayout>
     </LinearLayout>
@@ -115,7 +116,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/share"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_mini"
@@ -126,7 +127,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/minus"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_full"
@@ -137,7 +138,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/expand"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_close"
@@ -148,7 +149,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/x"
-                android:tint="@color/alert" />
+                app:tint="@color/alert" />
         </LinearLayout>
 
         <LinearLayout
@@ -166,7 +167,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/horizontal_rotate"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_nav_bar"
@@ -177,7 +178,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/not_equal"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_power"
@@ -188,7 +189,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/power"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_light"
@@ -199,7 +200,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/lightbulb_off"
-                android:tint="@color/clientNavIcon" />
+                app:tint="@color/clientNavIcon" />
         </LinearLayout>
 
     </LinearLayout>

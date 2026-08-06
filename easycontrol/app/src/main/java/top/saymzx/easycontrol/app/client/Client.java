@@ -72,6 +72,12 @@ public class Client {
         return client.clientController;
     }
 
+    public static ClientPlayer getClientPlayer(String uuid) {
+        Client client = allClient.get(uuid);
+        if (client == null) return null;
+        return client.clientPlayer;
+    }
+
     public static void sendAction(String uuid, String action, ByteBuffer byteBuffer, int delay) {
         if (action == null || uuid == null) return;
         if (action.equals("start")) {
@@ -108,10 +114,13 @@ public class Client {
         if (clientPlayer != null) clientPlayer.close();
         if (clientController != null) clientController.close();
         if (clientStream != null) clientStream.close();
-        // 如果设置了自动重连
+        // 异常断开时自动重连（设备级开关或全局开关任一开启）
         if (byteBuffer != null) {
-            PublicTools.logToast("Client", new String(byteBuffer.array()), true);
-            if (device.reconnectOnClose) startDevice(device);
+            String errorMsg = new String(byteBuffer.array());
+            PublicTools.logToast("Client", errorMsg, true);
+            if (device.reconnectOnClose || AppData.setting.getShowReconnect()) {
+                top.saymzx.easycontrol.app.helper.ConnectHelper.showReconnect(device, errorMsg);
+            }
         }
     }
 

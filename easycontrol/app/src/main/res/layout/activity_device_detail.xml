@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/background"
     android:orientation="vertical"
     tools:context=".DeviceDetailActivity">
@@ -24,7 +25,7 @@
             android:background="@drawable/background_button_secondary"
             android:padding="12dp"
             android:src="@drawable/chevron_left"
-            android:tint="@color/onSecondaryContainer" />
+            app:tint="@color/onSecondaryContainer" />
 
         <TextView
             android:layout_width="0dp"
@@ -118,7 +119,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:src="@drawable/scansion"
-                            android:tint="@color/onSecondaryContainer" />
+                            app:tint="@color/onSecondaryContainer" />
                     </FrameLayout>
 
                 </LinearLayout>
@@ -275,7 +276,7 @@
                         android:layout_width="18dp"
                         android:layout_height="18dp"
                         android:src="@drawable/chevron_down"
-                        android:tint="@color/onCardBackgroundSecond" />
+                        app:tint="@color/onCardBackgroundSecond" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -368,7 +369,7 @@
                         android:layout_width="18dp"
                         android:layout_height="18dp"
                         android:src="@drawable/chevron_down"
-                        android:tint="@color/onCardBackgroundSecond" />
+                        app:tint="@color/onCardBackgroundSecond" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -414,7 +415,7 @@
                         android:layout_width="18dp"
                         android:layout_height="18dp"
                         android:src="@drawable/chevron_down"
-                        android:tint="@color/onCardBackgroundSecond" />
+                        app:tint="@color/onCardBackgroundSecond" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -460,7 +461,7 @@
                         android:layout_width="18dp"
                         android:layout_height="18dp"
                         android:src="@drawable/chevron_down"
-                        android:tint="@color/onCardBackgroundSecond" />
+                        app:tint="@color/onCardBackgroundSecond" />
                 </LinearLayout>
 
                 <LinearLayout

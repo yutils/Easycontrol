@@ -111,12 +111,18 @@ public class AudioDecode {
     // 创建AudioTrack
     private void setAudioTrack() {
         int bufferSize = Math.min(AudioTrack.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT) * 8, 16 * AUDIO_PACKET_SIZE);
+        int audioChannel = top.saymzx.easycontrol.app.entity.AppData.setting.getAudioChannel();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             AudioTrack.Builder audioTrackBuild = new AudioTrack.Builder();
             // 1
             AudioAttributes.Builder audioAttributesBulider = new AudioAttributes.Builder();
-            audioAttributesBulider.setUsage(AudioAttributes.USAGE_MEDIA);
-            audioAttributesBulider.setContentType(AudioAttributes.CONTENT_TYPE_MUSIC);
+            if (audioChannel > 0) {
+                // 指定声道时使用 legacy stream type
+                audioAttributesBulider.setLegacyStreamType(audioChannel);
+            } else {
+                audioAttributesBulider.setUsage(AudioAttributes.USAGE_MEDIA);
+                audioAttributesBulider.setContentType(AudioAttributes.CONTENT_TYPE_MUSIC);
+            }
             // 2
             AudioFormat.Builder audioFormat = new AudioFormat.Builder();
             audioFormat.setEncoding(AudioFormat.ENCODING_PCM_16BIT);
@@ -130,7 +136,7 @@ public class AudioDecode {
             // 4
             audioTrack = audioTrackBuild.build();
         } else
-            audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, SAMPLE_RATE, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize, AudioTrack.MODE_STREAM);
+            audioTrack = new AudioTrack(audioChannel > 0 ? audioChannel : AudioManager.STREAM_MUSIC, SAMPLE_RATE, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize, AudioTrack.MODE_STREAM);
         audioTrack.play();
     }
 

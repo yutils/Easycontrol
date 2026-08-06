@@ -8,6 +8,7 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
+import android.util.Log;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -30,7 +31,9 @@ public final class AudioEncode {
             setAudioEncodec();
             encedec.start();
             audioCapture = AudioCapture.init();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            Log.e("Easycontrol_Server", "AudioEncode init failed: " + e);
+            e.printStackTrace();
             Server.writeMain(ByteBuffer.wrap(bytes));
             return false;
         }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?><!-- 重连倒计时对话框 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/spaceLg">
+
+    <TextView
+        android:id="@+id/reconnect_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/onCardBackground"
+        android:textSize="@dimen/smallFont"
+        android:gravity="center"
+        android:paddingBottom="@dimen/spaceMd" />
+
+    <Button
+        android:id="@+id/reconnect_cancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/reconnect_cancel"
+        android:background="@drawable/background_button_secondary"
+        android:textColor="@color/onSecondaryContainer" />
+
+</LinearLayout>

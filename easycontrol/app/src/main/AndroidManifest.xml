@@ -48,6 +48,9 @@
             android:name=".SetActivity"
             android:exported="false" />
         <activity
+            android:name=".GeneralSetActivity"
+            android:exported="false" />
+        <activity
             android:name=".IpActivity"
             android:exported="false" />
         <activity

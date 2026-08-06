@@ -39,7 +39,7 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ViewTools.setStatusAndNavBar(this);
-        ViewTools.setFullScreen(this);
+        if (AppData.setting.getSetFullScreen()) ViewTools.setFullScreen(this);
         activityFullBinding = ActivityFullBinding.inflate(this.getLayoutInflater());
         setContentView(activityFullBinding.getRoot());
         String uuid = getIntent().getStringExtra("uuid");
@@ -70,6 +70,10 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onPause() {
         AppData.sensorManager.unregisterListener(this);
+        if (device == null || clientController == null) {
+            super.onPause();
+            return;
+        }
         if (isChangingConfigurations())
             activityFullBinding.textureViewLayout.removeView(clientController.getTextureView());
         else if (!isClose)
@@ -152,13 +156,17 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
         activityFullBinding.navBar.setVisibility(isShow ? View.VISIBLE : View.GONE);
         activityFullBinding.buttonNavBar.setImageResource(isShow ? R.drawable.not_equal : R.drawable.equals);
         activityFullBinding.textureViewLayout.post(this::updateMaxSize);
-        activityFullBinding.buttonMore.setImageTintList(ColorStateList.valueOf(getResources().getColor(isShow ? R.color.onCardBackground : R.color.onBlackBacnground)));
+        // 菜单按钮始终在深色背景上（全屏画面或半透明黑导航栏），统一用白色图标
+        activityFullBinding.buttonMore.setImageTintList(ColorStateList.valueOf(getResources().getColor(R.color.onBlackBacnground)));
     }
 
     private void changeBarView() {
         boolean toShowView = activityFullBinding.barView.getVisibility() == View.GONE;
         boolean isLandscape = lastOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE || lastOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
-        ViewTools.viewAnim(activityFullBinding.barView, toShowView, 0, PublicTools.dp2px(40f) * (isLandscape ? -1 : 1), (isStart -> {
+        // 横屏：工具栏在右上角，从右侧水平滑入；竖屏：工具栏在左下角，从下方垂直滑入
+        int tx = isLandscape ? PublicTools.dp2px(40f) : 0;
+        int ty = isLandscape ? 0 : PublicTools.dp2px(40f);
+        ViewTools.viewAnim(activityFullBinding.barView, toShowView, tx, ty, (isStart -> {
             if (isStart && toShowView) activityFullBinding.barView.setVisibility(View.VISIBLE);
             else if (!isStart && !toShowView) activityFullBinding.barView.setVisibility(View.GONE);
         }));

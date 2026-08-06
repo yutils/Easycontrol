@@ -3,6 +3,8 @@ package top.saymzx.easycontrol.app.helper;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -207,6 +209,40 @@ public class PublicTools {
         } catch (InterruptedException ignored) {
         }
         return scannedAddresses;
+    }
+
+    // 检查悬浮窗权限（兼容安卓6以下部分国产ROM检测不准的问题）
+    public static boolean checkOverlayPermission(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return Settings.canDrawOverlays(context);
+        }
+        // 安卓6以下通过AppOpsManager检测
+        try {
+            Object appOps = context.getSystemService(Context.APP_OPS_SERVICE);
+            Class<?> appOpsClass = Class.forName("android.app.AppOpsManager");
+            java.lang.reflect.Method checkOpNoThrow = appOpsClass.getMethod("checkOpNoThrow", int.class, int.class, String.class);
+            // OP_SYSTEM_ALERT_WINDOW = 24
+            int result = (int) checkOpNoThrow.invoke(appOps, 24, android.os.Process.myUid(), context.getPackageName());
+            return result == 0; // MODE_ALLOWED = 0
+        } catch (Exception ignored) {
+            return true; // 检测失败默认允许
+        }
+    }
+
+    // 检查设备是否支持指定解码器
+    public static boolean isDecoderSupport(String mime) {
+        try {
+            android.media.MediaCodecList codecList = new android.media.MediaCodecList(android.media.MediaCodecList.ALL_CODECS);
+            for (android.media.MediaCodecInfo codecInfo : codecList.getCodecInfos()) {
+                if (!codecInfo.isEncoder()) {
+                    for (String type : codecInfo.getSupportedTypes()) {
+                        if (type.equalsIgnoreCase(mime)) return true;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
     }
 
 }

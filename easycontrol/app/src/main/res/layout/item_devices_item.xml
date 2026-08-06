@@ -7,6 +7,7 @@
     android:background="@drawable/background_card_clickable"
     android:gravity="center_vertical"
     android:orientation="horizontal"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:paddingStart="@dimen/cardPaddingH"
     android:paddingTop="@dimen/cardPaddingV"
     android:paddingEnd="@dimen/cardPaddingH"
@@ -25,7 +26,7 @@
             android:layout_width="26dp"
             android:layout_height="26dp"
             android:src="@drawable/wifi"
-            android:tint="@color/onColor1" />
+            app:tint="@color/onColor1" />
     </FrameLayout>
 
     <LinearLayout

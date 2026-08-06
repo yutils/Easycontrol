@@ -74,6 +74,7 @@ public class ClientStream {
             adb.pushFile(AppData.applicationContext.getResources().openRawResource(R.raw.easycontrol_server), serverName, null);
         }
         shell = adb.getShell();
+        PublicTools.logToast("stream", "startServer isAudio=" + device.isAudio + " address=" + device.address + " serverPort=" + device.serverPort, false);
         shell.write(ByteBuffer.wrap(("app_process -Djava.class.path=" + serverName + " / top.saymzx.easycontrol.server.Server"
                 + " serverPort=" + device.serverPort
                 + " listenClip=" + (device.listenClip ? 1 : 0)
