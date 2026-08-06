@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
 
+import top.saymzx.easycontrol.app.R;
+import top.saymzx.easycontrol.app.entity.AppData;
 import top.saymzx.easycontrol.app.entity.Device;
 
 public class DbHelper extends SQLiteOpenHelper {
@@ -87,10 +89,10 @@ public class DbHelper extends SQLiteOpenHelper {
         return getAll(getReadableDatabase());
     }
 
-    // 生成默认设备名称：设备1、设备2、设备3...
+    // 生成默认设备名称：设备1、设备2、设备3... / Device1、Device2、Device3...
     public String getDefaultDeviceName() {
         int count = getAll().size();
-        return "设备" + (count + 1);
+        return AppData.applicationContext.getString(R.string.main_device_default_name, count + 1);
     }
 
     private ArrayList<Device> getAll(SQLiteDatabase db) {

@@ -17,6 +17,7 @@
     <string name="main_scan_device_local">本机</string>
     <string name="main_device_type_network">无线连接</string>
     <string name="main_device_type_link">有线连接</string>
+    <string name="main_device_default_name">设备%1$d</string>
 
     <!-- 设置页面 -->
     <string name="set_general">通用设置</string>
@@ -110,7 +111,7 @@
     <string name="loading_text">加载中</string>
 
     <!-- 提示文本 -->
-    <string name="toast_change_locale">Ok, you may need to restart the APP</string>
+    <string name="toast_change_locale">已切换，可能需要重启APP</string>
     <string name="toast_copy">已复制</string>
     <string name="toast_success">成功</string>
     <string name="toast_fail">失败</string>
@@ -141,5 +142,24 @@
     <string name="set_audio_channel_detail">设置音频输出使用的系统流类型(媒体默认/系统/铃声/闹钟/通知等)</string>
     <string name="set_enable_usb">启用USB设备检测</string>
     <string name="set_enable_usb_detail">开启后自动检测已连接的USB设备（USB有线控制）</string>
+
+    <!-- 音频输出声道选项 -->
+    <string-array name="audio_channels">
+        <item>媒体(默认)</item>
+        <item>系统</item>
+        <item>铃声</item>
+        <item>媒体</item>
+        <item>闹钟</item>
+        <item>通知</item>
+        <item>蓝牙通话</item>
+        <item>强制系统</item>
+        <item>双音多频</item>
+        <item>语音合成</item>
+        <item>无障碍</item>
+    </string-array>
+
+    <!-- 语言切换重启提示 -->
+    <string name="locale_changed">语言已切换，是否立即重启应用以生效？</string>
+    <string name="locale_restart">重启</string>
 
 </resources>

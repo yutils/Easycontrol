@@ -145,7 +145,8 @@ public class DeviceDetailActivity extends AppCompatActivity {
                 Dialog dialog = ViewTools.createDialog(this, true, scanAddressListView.getRoot());
                 for (String i : scannedAddresses) {
                     ItemTextBinding text = ViewTools.createTextCard(this, i, () -> {
-                        activityDeviceDetailBinding.address.setText(i);
+                        // 只填入纯IP地址，去掉可能的"(本机)"后缀
+                        activityDeviceDetailBinding.address.setText(i.split(" \\(")[0]);
                         dialog.cancel();
                     });
                     scanAddressListView.list.addView(text.getRoot());

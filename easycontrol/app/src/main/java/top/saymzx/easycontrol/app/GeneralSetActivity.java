@@ -51,11 +51,11 @@ public class GeneralSetActivity extends AppCompatActivity {
                 getString(R.string.set_set_full_screen), getString(R.string.set_set_full_screen_detail),
                 AppData.setting.getSetFullScreen(),
                 checked -> AppData.setting.setSetFullScreen(checked)).getRoot());
-        // 音频输出声道（0=媒体默认, 1=系统, 2=铃声, 3=媒体, 4=闹钟, 5=通知, 6=蓝牙通话, 7=强制系统, 8=双音多频, 9=语音合成, 10=无障碍）
-        String[] channelNames = {"媒体(默认)", "系统", "铃声", "媒体", "闹钟", "通知", "蓝牙通话", "强制系统", "双音多频", "语音合成", "无障碍"};
+        // 音频输出声道
+        String[] channelNames = getResources().getStringArray(R.array.audio_channels);
         List<String> channelList = new ArrayList<>(java.util.Arrays.asList(channelNames));
         ArrayAdapter<String> channelAdapter = new ArrayAdapter<>(this, R.layout.item_spinner_item, channelList);
-        int currentChannel = Math.min(Math.max(AppData.setting.getAudioChannel(), 0), 10);
+        int currentChannel = Math.min(Math.max(AppData.setting.getAudioChannel(), 0), channelNames.length - 1);
         activityGeneralSetBinding.setDisplay.addView(ViewTools.createSpinnerCard(this,
                 getString(R.string.set_audio_channel), getString(R.string.set_audio_channel_detail),
                 channelNames[currentChannel], channelAdapter,

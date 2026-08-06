@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?><!-- 感谢群友 @λ 提供的翻译，原谅我之前只能用机器翻译 -->
 <resources>
-    <string name="app_name">EasyControl</string>
-    <string name="app_name_simple">EasyControl</string>
+    <string name="app_name">EasyControl•RS</string>
+    <string name="app_name_simple">EasyControl•RainySeason</string>
     <string name="app_name_dev">EasyControlBeta</string>
 
     <!-- 页面标题 -->
@@ -17,6 +17,7 @@
     <string name="main_scan_device_local">Local</string>
     <string name="main_device_type_network">Wireless</string>
     <string name="main_device_type_link">Wired</string>
+    <string name="main_device_default_name">Device%1$d</string>
 
     <!-- 设置页面 -->
     <string name="set_general">General</string>
@@ -110,7 +111,7 @@
     <string name="loading_text">Loading</string>
 
     <!-- 提示文本 -->
-    <string name="toast_change_locale">已切换，可能需要重启APP</string>
+    <string name="toast_change_locale">Ok, you may need to restart the APP</string>
     <string name="toast_copy">Copied</string>
     <string name="toast_success">Success</string>
     <string name="toast_fail">Fail</string>
@@ -141,5 +142,24 @@
     <string name="set_audio_channel_detail">Set the system stream type for audio output (Media default / System / Ring / Alarm / Notification, etc.)</string>
     <string name="set_enable_usb">Enable USB device detection</string>
     <string name="set_enable_usb_detail">Automatically detect connected USB devices (USB wired control)</string>
+
+    <!-- Audio output channel options -->
+    <string-array name="audio_channels">
+        <item>Media (Default)</item>
+        <item>System</item>
+        <item>Ring</item>
+        <item>Media</item>
+        <item>Alarm</item>
+        <item>Notification</item>
+        <item>Bluetooth Call</item>
+        <item>Forced System</item>
+        <item>DTMF</item>
+        <item>Text To Speech</item>
+        <item>Accessibility</item>
+    </string-array>
+
+    <!-- Language switch restart prompt -->
+    <string name="locale_changed">Language changed, restart the app to take effect?</string>
+    <string name="locale_restart">Restart</string>
 
 </resources>

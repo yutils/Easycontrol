@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import top.saymzx.easycontrol.app.databinding.ActivitySetBinding;
@@ -39,7 +40,20 @@ public class SetActivity extends AppCompatActivity {
         }).getRoot());
         activitySetBinding.setOther.addView(ViewTools.createTextCard(this, getString(R.string.set_other_locale), () -> {
             AppData.setting.setLocale(AppData.setting.getLocale().equals("en") ? "zh" : "en");
-            Toast.makeText(this, getString(R.string.toast_change_locale), Toast.LENGTH_SHORT).show();
+            // 弹窗提示是否立即重启应用
+            new AlertDialog.Builder(this)
+                    .setMessage(R.string.locale_changed)
+                    .setPositiveButton(R.string.locale_restart, (d, w) -> {
+                        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+                        if (intent != null) {
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            System.exit(0);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .setCancelable(false)
+                    .show();
         }).getRoot());
         // 关于
         activitySetBinding.setAbout.addView(ViewTools.createTextCard(this, getString(R.string.set_about_website), () -> PublicTools.startUrl(this, "https://github.com/yutils/Easycontrol")).getRoot());
