@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?><!-- 小窗悬浮窗：可拖拽的视频画面 + 导航栏 + 浮动工具栏 -->
+<!-- 注意：本布局用 Application Context 膨胀(见 SmallView.java)，没有 AppCompat LayoutInflater Factory，
+     所以图标染色只能用 android:tint，不能用 app:tint（后者不会被解析，图标会保持 VectorDrawable 原始黑色） -->
 <top.saymzx.easycontrol.app.client.view.MyViewForSmallView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    tools:ignore="UseAppTint">
 
     <EditText
         android:id="@+id/edit_text"
@@ -47,7 +49,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/square"
-                app:tint="@color/clientNavIcon" />
+                android:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_home"
@@ -58,7 +60,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/o"
-                app:tint="@color/clientNavIcon" />
+                android:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_back"
@@ -69,7 +71,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/caret_left"
-                app:tint="@color/clientNavIcon" />
+                android:tint="@color/clientNavIcon" />
 
         </LinearLayout>
     </LinearLayout>
@@ -116,7 +118,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/share"
-                app:tint="@color/clientNavIcon" />
+                android:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_mini"
@@ -127,7 +129,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/minus"
-                app:tint="@color/clientNavIcon" />
+                android:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_full"
@@ -138,7 +140,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/expand"
-                app:tint="@color/clientNavIcon" />
+                android:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_close"
@@ -149,7 +151,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/x"
-                app:tint="@color/alert" />
+                android:tint="@color/alert" />
         </LinearLayout>
 
         <LinearLayout
@@ -167,7 +169,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/horizontal_rotate"
-                app:tint="@color/clientNavIcon" />
+                android:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_nav_bar"
@@ -178,7 +180,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/not_equal"
-                app:tint="@color/clientNavIcon" />
+                android:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_power"
@@ -189,7 +191,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/power"
-                app:tint="@color/clientNavIcon" />
+                android:tint="@color/clientNavIcon" />
 
             <ImageView
                 android:id="@+id/button_light"
@@ -200,7 +202,7 @@
                 android:focusable="false"
                 android:padding="9dp"
                 android:src="@drawable/lightbulb_off"
-                app:tint="@color/clientNavIcon" />
+                android:tint="@color/clientNavIcon" />
         </LinearLayout>
 
     </LinearLayout>

@@ -58,7 +58,7 @@ public class SetActivity extends AppCompatActivity {
         // 关于
         activitySetBinding.setAbout.addView(ViewTools.createTextCard(this, getString(R.string.set_about_website), () -> PublicTools.startUrl(this, "https://github.com/yutils/Easycontrol")).getRoot());
         activitySetBinding.setAbout.addView(ViewTools.createTextCard(this, getString(R.string.set_about_privacy), () -> PublicTools.startUrl(this, "https://github.com/yutils/Easycontrol/blob/master/PRIVACY.md")).getRoot());
-        activitySetBinding.setAbout.addView(ViewTools.createTextCard(this, getString(R.string.set_about_version) + BuildConfig.VERSION_NAME, () -> PublicTools.startUrl(this, "https://github.com/yutils/Easycontrol/releases/latest")).getRoot());
+        activitySetBinding.setAbout.addView(ViewTools.createTextCard(this, getString(R.string.set_about_version) + BuildConfig.VERSION_NAME, () -> PublicTools.startUrl(this, "https://github.com/yutils/Easycontrol/releases")).getRoot());
     }
 
     // 设置按钮监听
