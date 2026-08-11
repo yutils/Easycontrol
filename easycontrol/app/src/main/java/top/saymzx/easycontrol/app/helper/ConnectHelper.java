@@ -47,9 +47,6 @@ public class ConnectHelper {
 
             Dialog dialog = ViewTools.createDialog(activity, true, view);
             currentDialog = dialog;
-            dialog.setOnCancelListener(d -> uiHandler.removeCallbacksAndMessages(null));
-            dialog.show();
-
             // 倒计时
             Handler countdownHandler = new Handler(Looper.getMainLooper());
             Runnable countdownRunnable = new Runnable() {
@@ -65,6 +62,12 @@ public class ConnectHelper {
                     }
                 }
             };
+            dialog.setOnCancelListener(d -> {
+                uiHandler.removeCallbacksAndMessages(null);
+                countdownHandler.removeCallbacks(countdownRunnable);
+            });
+            dialog.show();
+
             cancelButton.setOnClickListener(v -> {
                 countdownHandler.removeCallbacks(countdownRunnable);
                 dialog.cancel();

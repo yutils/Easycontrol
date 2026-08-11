@@ -21,7 +21,9 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -76,7 +78,8 @@ public class PublicTools {
 
     // 获取网关地址
     public static String getGateway() {
-        int ip = AppData.wifiManager.getDhcpInfo().gateway;
+        android.net.DhcpInfo dhcpInfo = AppData.wifiManager.getDhcpInfo();
+        int ip = dhcpInfo == null ? 0 : dhcpInfo.gateway;
         // 没有wifi时，设置为1.1.1.1
         if (ip == 0) ip = 16843009;
         return decodeIntToIp(ip, 4);
@@ -84,7 +87,8 @@ public class PublicTools {
 
     // 获取子网地址
     public static String getNetAddress() {
-        int ip = AppData.wifiManager.getDhcpInfo().gateway;
+        android.net.DhcpInfo dhcpInfo = AppData.wifiManager.getDhcpInfo();
+        int ip = dhcpInfo == null ? 0 : dhcpInfo.gateway;
         // 没有wifi时，设置为1.1.1.1
         if (ip == 0) ip = 16843009;
         // 因为此标识符使用场景有限，为了节省资源，默认地址为24位掩码地址
@@ -179,8 +183,8 @@ public class PublicTools {
     }
 
     // 扫描局域网设备
-    public static ArrayList<String> scanAddress() {
-        ArrayList<String> scannedAddresses = new ArrayList<>();
+    public static List<String> scanAddress() {
+        List<String> scannedAddresses = Collections.synchronizedList(new ArrayList<>());
         ExecutorService executor = Executors.newFixedThreadPool(256);
         ArrayList<String> ipv4List = getLocalIp().first;
         for (String ipv4 : ipv4List) {

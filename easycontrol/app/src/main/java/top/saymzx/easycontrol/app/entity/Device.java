@@ -42,6 +42,9 @@ public class Device {
     public int smallLengthLan = 800;
     public int miniY = 200;
 
+    // 连接成功后的回调（用于单应用投屏切换：temp 连接成功后再关闭原会话，避免失败时丢失会话）
+    public Runnable onConnectSuccess = null;
+
     public Device(String uuid, int type) {
         this.uuid = uuid;
         this.type = type;

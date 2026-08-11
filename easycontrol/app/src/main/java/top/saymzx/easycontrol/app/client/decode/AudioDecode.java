@@ -53,10 +53,16 @@ public class AudioDecode {
     public AudioDecode(boolean useOpus, ByteBuffer csd0, Handler playHandler) throws IOException {
         // 创建Codec
         setAudioDecodec(useOpus, csd0, playHandler);
-        // 创建AudioTrack
-        setAudioTrack();
-        // 创建音频放大器
-        setLoudnessEnhancer();
+        try {
+            // 创建AudioTrack
+            setAudioTrack();
+            // 创建音频放大器
+            setLoudnessEnhancer();
+        } catch (Exception e) {
+            // 后续步骤失败时释放已创建的 MediaCodec，避免系统资源泄漏
+            try { decodec.release(); } catch (Exception ignored) {}
+            throw e;
+        }
     }
 
     public void release() {

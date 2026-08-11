@@ -120,8 +120,11 @@
     <string name="toast_address_error">Address format error</string>
     <string name="toast_timeout">Timeout</string>
     <string name="toast_connect_server">Failed to connect</string>
+    <string name="toast_connect_network_error">Network unreachable, check your network or whether the device is online</string>
+    <string name="toast_connect_rejected">Connection rejected — enable network debugging on the target device and authorize this device</string>
     <string name="toast_stream_closed">Disconnected</string>
     <string name="toast_float_per">Need floating window permission</string>
+    <string name="toast_home_single_app">Cannot single-app cast the home screen</string>
 
     <!-- Reconnect dialog -->
     <string name="reconnect_countdown">Device \"%1$s\" connection abnormal, reconnecting in %2$d seconds…</string>

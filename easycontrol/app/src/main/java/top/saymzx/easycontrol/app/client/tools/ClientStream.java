@@ -3,9 +3,14 @@ package top.saymzx.easycontrol.app.client.tools;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
+import java.net.NoRouteToHostException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import top.saymzx.easycontrol.app.BuildConfig;
 import top.saymzx.easycontrol.app.R;
@@ -18,8 +23,8 @@ import top.saymzx.easycontrol.app.entity.MyInterface;
 import top.saymzx.easycontrol.app.helper.PublicTools;
 
 public class ClientStream {
-    private boolean isClose = false;
-    private boolean connectDirect = false;
+    private volatile boolean isClose = false;
+    private volatile boolean connectDirect = false;
     private Adb adb;
     private Socket mainSocket;
     private Socket videoSocket;
@@ -37,13 +42,20 @@ public class ClientStream {
     private static final int timeoutDelay = 1000 * 15;
 
     public ClientStream(Device device, MyInterface.MyFunctionBoolean handle) {
+        // 幂等保护：确保 handle 只被调用一次，避免超时后连接成功导致重复注册
+        AtomicBoolean handleCalled = new AtomicBoolean(false);
         // 超时
         Thread timeOutThread = new Thread(() -> {
             try {
                 Thread.sleep(timeoutDelay);
-                PublicTools.logToast("stream", AppData.applicationContext.getString(R.string.toast_timeout), true);
-                handle.run(false);
-                if (connectThread != null) connectThread.interrupt();
+                // 仅在"连接未在时限内完成"时超时处理；连接已成功则绝不再 close，避免刚注册的会话被杀
+                if (handleCalled.compareAndSet(false, true)) {
+                    PublicTools.logToast("stream", AppData.applicationContext.getString(R.string.toast_timeout), true);
+                    handle.run(false);
+                    if (connectThread != null) connectThread.interrupt();
+                    // 超时后关闭已建立的连接，避免资源泄漏和孤儿连接
+                    close();
+                }
             } catch (InterruptedException ignored) {
             }
         });
@@ -53,16 +65,25 @@ public class ClientStream {
                 adb = AdbTools.connectADB(device);
                 startServer(device);
                 connectServer(device);
-                handle.run(true);
+                if (handleCalled.compareAndSet(false, true)) handle.run(true);
             } catch (Exception e) {
-                PublicTools.logToast("stream", e.toString(), true);
-                handle.run(false);
+                PublicTools.logToast("stream", getConnectErrorMessage(e), true);
+                if (handleCalled.compareAndSet(false, true)) handle.run(false);
             } finally {
                 timeOutThread.interrupt();
             }
         });
         connectThread.start();
         timeOutThread.start();
+    }
+
+    // 连接失败提示：区分「网络不通」与「被设备拒绝(未开网络调试/未授权)」，便于用户定位原因
+    private String getConnectErrorMessage(Exception e) {
+        if (e instanceof UnknownHostException || e instanceof NoRouteToHostException || e instanceof SocketTimeoutException)
+            return AppData.applicationContext.getString(R.string.toast_connect_network_error);
+        if (e instanceof ConnectException || String.valueOf(e.getMessage()).contains("ADB连接失败"))
+            return AppData.applicationContext.getString(R.string.toast_connect_rejected);
+        return e.toString();
     }
 
     // 启动Server
@@ -114,6 +135,9 @@ public class ClientStream {
                 } catch (Exception ignored) {
                     if (mainSocket != null) mainSocket.close();
                     if (videoSocket != null) videoSocket.close();
+                    mainSocket = null;
+                    videoSocket = null;
+                    mainConn = false;
                     // 如果超时，直接跳出循环
                     if (System.currentTimeMillis() - startTime >= timeoutDelay / 2 - 1000)
                         i = reTry;

@@ -24,7 +24,7 @@ public class MiniView {
     private final Device device;
     private ClientController clientController;
     private Thread timeoutListenerThread;
-    private long lastTouchTIme = 0;
+    private volatile long lastTouchTIme = 0;
 
     // 迷你悬浮窗
     private final ModuleMiniViewBinding miniView = ModuleMiniViewBinding.inflate(LayoutInflater.from(AppData.applicationContext));
@@ -76,7 +76,7 @@ public class MiniView {
         try {
             long now;
             while (!Thread.interrupted()) {
-                Thread.sleep(2);
+                Thread.sleep(500);
                 now = System.currentTimeMillis();
                 if (now - lastTouchTIme > 5000) {
                     clientController.handleAction(timeoutAction, null, 0);

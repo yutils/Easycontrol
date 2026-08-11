@@ -45,7 +45,7 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
         String uuid = getIntent().getStringExtra("uuid");
         device = Client.getDevice(uuid);
         clientController = Client.getClientController(uuid);
-        if (device == null || clientController == null) return;
+        if (device == null || clientController == null) { finish(); return; }
         clientController.setFullView(this);
         // 初始化
         activityFullBinding.barView.setVisibility(View.GONE);
@@ -83,7 +83,8 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onMultiWindowModeChanged(boolean isInMultiWindowMode, Configuration newConfig) {
-        activityFullBinding.textureViewLayout.post(this::updateMaxSize);
+        if (device != null && clientController != null)
+            activityFullBinding.textureViewLayout.post(this::updateMaxSize);
         super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig);
     }
 

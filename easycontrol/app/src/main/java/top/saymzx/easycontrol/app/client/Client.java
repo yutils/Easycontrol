@@ -4,7 +4,7 @@ import android.app.Dialog;
 import android.util.Pair;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Objects;
 
 import top.saymzx.easycontrol.app.client.tools.AdbTools;
@@ -19,8 +19,8 @@ import top.saymzx.easycontrol.app.helper.PublicTools;
 import top.saymzx.easycontrol.app.helper.ViewTools;
 
 public class Client {
-    private static final HashMap<String, Client> allClient = new HashMap<>();
-    private boolean isClosed = false;
+    private static final ConcurrentHashMap<String, Client> allClient = new ConcurrentHashMap<>();
+    private volatile boolean isClosed = false;
 
     // 组件
     private ClientStream clientStream = null;
@@ -30,13 +30,21 @@ public class Client {
 
     public Client(Device device) {
         if (allClient.containsKey(device.uuid)) return;
+        if (AppData.mainActivity == null) return;
         this.device = device;
         Pair<ItemLoadingBinding, Dialog> loading = ViewTools.createLoading(AppData.mainActivity);
         loading.second.show();
         // 连接
         clientStream = new ClientStream(device, bool -> {
             if (bool) {
-                allClient.put(device.uuid, this);
+                // putIfAbsent 防止快速双击导致重复连接
+                Client existing = allClient.putIfAbsent(device.uuid, this);
+                if (existing != null) {
+                    // 已有连接，关闭当前新建的
+                    if (loading.second.isShowing()) loading.second.cancel();
+                    clientStream.close();
+                    return;
+                }
                 // 控制器、播放器
                 clientController = new ClientController(device, clientStream, () -> clientPlayer = new ClientPlayer(device.uuid, clientStream));
                 // 临时设备
@@ -50,6 +58,12 @@ public class Client {
                     clientController.handleAction("buttonWake", null, 0);
                 if (!isTempDevice && device.lightOffOnConnect)
                     clientController.handleAction("buttonLightOff", null, 2000);
+                // 连接成功回调（单应用投屏切换：此时才关闭原会话，连接失败则原会话保留）
+                if (device.onConnectSuccess != null) {
+                    Runnable onConnectSuccess = device.onConnectSuccess;
+                    device.onConnectSuccess = null;
+                    onConnectSuccess.run();
+                }
             }
             if (loading.second.isShowing()) loading.second.cancel();
         });
@@ -103,12 +117,13 @@ public class Client {
         // 更新数据库
         if (!isTempDevice) AppData.dbHelper.update(device);
         allClient.remove(device.uuid);
-        // 运行断开时操作
-        if (clientController != null) {
-            if (!isTempDevice && device.lockOnClose)
-                clientController.handleAction("buttonLock", null, 0);
-            else if (!isTempDevice && device.lightOnClose)
-                clientController.handleAction("buttonLight", null, 0);
+        // 运行断开时操作：必须在关流前同步写出（post 到 controller 线程会在关流后执行而失效）
+        if (!isTempDevice && clientStream != null) {
+            try {
+                if (device.lockOnClose) clientStream.writeToMain(ControlPacket.createPowerEvent(0));
+                else if (device.lightOnClose) clientStream.writeToMain(ControlPacket.createPowerEvent(1));
+            } catch (Exception ignored) {
+            }
         }
         // 关闭组件
         if (clientPlayer != null) clientPlayer.close();

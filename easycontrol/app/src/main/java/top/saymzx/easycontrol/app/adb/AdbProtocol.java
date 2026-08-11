@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 
 public class AdbProtocol {
     public static final int ADB_HEADER_LENGTH = 24;
+    // payload 最大长度限制，防止恶意/损坏数据导致 OOM
+    private static final int MAX_PAYLOAD = 1024 * 1024;
 
     public static final int AUTH_TYPE_TOKEN = 1;
     public static final int AUTH_TYPE_SIGNATURE = 2;
@@ -110,7 +112,7 @@ public class AdbProtocol {
             msg.payloadLength = buffer.getInt();
 //      msg.checksum = buffer.getInt();
 //      msg.magic = buffer.getInt();
-            if (msg.payloadLength > 0) msg.payload = channel.read(msg.payloadLength);
+            if (msg.payloadLength > 0 && msg.payloadLength <= MAX_PAYLOAD) msg.payload = channel.read(msg.payloadLength);
 
             return msg;
         }

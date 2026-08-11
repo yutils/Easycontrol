@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class BufferNew {
-    private boolean isClosed = false;
+    private volatile boolean isClosed = false;
     private final LinkedBlockingDeque<ByteBuffer> dataQueue = new LinkedBlockingDeque<>();
 
     public void write(ByteBuffer data) {

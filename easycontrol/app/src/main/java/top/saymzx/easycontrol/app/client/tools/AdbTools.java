@@ -4,8 +4,8 @@ import android.hardware.usb.UsbDevice;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import top.saymzx.easycontrol.app.adb.Adb;
@@ -15,9 +15,9 @@ import top.saymzx.easycontrol.app.entity.MyInterface;
 import top.saymzx.easycontrol.app.helper.PublicTools;
 
 public class AdbTools {
-    private static final HashMap<String, Adb> allAdbConnect = new HashMap<>();
+    private static final ConcurrentHashMap<String, Adb> allAdbConnect = new ConcurrentHashMap<>();
     public static final ArrayList<Device> devicesList = new ArrayList<>();
-    public static final HashMap<String, UsbDevice> usbDevicesList = new HashMap<>();
+    public static final ConcurrentHashMap<String, UsbDevice> usbDevicesList = new ConcurrentHashMap<>();
 
     // 连接ADB
     public static Adb connectADB(Device device) throws Exception {
@@ -27,7 +27,14 @@ public class AdbTools {
             if (device.isLinkDevice())
                 adb = new Adb(usbDevicesList.get(addressId), AppData.keyPair);
             else adb = new Adb(PublicTools.getIp(device.address), device.adbPort, AppData.keyPair);
-            allAdbConnect.put(addressId, adb);
+            Adb existing = allAdbConnect.putIfAbsent(addressId, adb);
+            if (existing != null && !existing.isClosed()) {
+                adb.close();
+                adb = existing;
+            } else if (existing != null) {
+                // 旧条目已关闭（传输掉线后无人移除），用新 Adb 顶掉，避免新建实例既不入缓存也不关闭导致泄漏
+                allAdbConnect.put(addressId, adb);
+            }
         }
         return adb;
     }

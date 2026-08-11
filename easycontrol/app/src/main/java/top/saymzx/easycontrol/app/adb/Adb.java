@@ -5,7 +5,9 @@ import android.hardware.usb.UsbDevice;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import top.saymzx.easycontrol.app.buffer.BufferStream;
 import top.saymzx.easycontrol.app.entity.MyInterface;
@@ -13,14 +15,16 @@ import top.saymzx.easycontrol.app.entity.MyInterface;
 // 此部分代码摘抄借鉴了tananaev大佬的开源代码(https://github.com/tananaev/adblib)以及开源库dadb(https://github.com/mobile-dev-inc/dadb)
 // 因为官方adb协议文档写的十分糟糕，因此此部分代码的实现参考了cstyan大佬所整理的文档，再次进行感谢：https://github.com/cstyan/adbDocumentation
 public class Adb {
-    private boolean isClosed = false;
+    private volatile boolean isClosed = false;
     private final AdbChannel channel;
-    private int localIdPool = 1;
+    private final AtomicInteger localIdPool = new AtomicInteger(1);
     private int MAX_DATA = AdbProtocol.CONNECT_MAXDATA;
     private final ConcurrentHashMap<Integer, BufferStream> connectionStreams = new ConcurrentHashMap<>(10);
     private final ConcurrentHashMap<Integer, BufferStream> openStreams = new ConcurrentHashMap<>(5);
 
     private final Thread handleInThread = new Thread(this::handleIn);
+    // open() 发出 OPEN 后仍在等待 OKAY 的本地流 id，用于区分「对端拒绝 OPEN」和「对端应答已关闭的流」
+    private final Set<Integer> pendingOpens = ConcurrentHashMap.newKeySet();
 
     public Adb(String address, int port, AdbKeyPair keyPair) throws Exception {
         channel = new TcpChannel(address, port);
@@ -56,72 +60,80 @@ public class Adb {
     }
 
     private BufferStream open(String destination, boolean canMultipleSend) throws InterruptedException {
-        int localId = localIdPool++ * (canMultipleSend ? 1 : -1);
-        writeToChannel(AdbProtocol.generateOpen(localId, destination));
-        BufferStream bufferStream;
-        do {
+        int localId = localIdPool.getAndIncrement() * (canMultipleSend ? 1 : -1);
+        // 先登记再发 OPEN，保证对端任何响应到达时 pendingOpens 已包含该 id
+        pendingOpens.add(localId);
+        try {
+            writeToChannel(AdbProtocol.generateOpen(localId, destination));
+            BufferStream bufferStream = null;
             synchronized (this) {
-                wait();
+                while (!isClosed && (bufferStream = openStreams.get(localId)) == null) {
+                    wait();
+                }
             }
-            bufferStream = openStreams.get(localId);
-        } while (!isClosed && bufferStream == null);
-        openStreams.remove(localId);
-        return bufferStream;
+            openStreams.remove(localId);
+            return bufferStream;
+        } finally {
+            pendingOpens.remove(localId);
+        }
     }
 
     public String restartOnTcpip(int port) throws InterruptedException {
         BufferStream bufferStream = open("tcpip:" + port, false);
-        do {
-            synchronized (this) {
+        synchronized (this) {
+            while (!bufferStream.isClosed()) {
                 wait();
             }
-        } while (!bufferStream.isClosed());
+        }
         return new String(bufferStream.readByteArrayBeforeClose().array());
     }
 
     public void pushFile(InputStream file, String remotePath, MyInterface.MyFunctionInt handleProcess) throws Exception {
         // 打开链接
         BufferStream bufferStream = open("sync:", false);
-        // 发送信令，建立push通道
-        String sendString = remotePath + ",33206";
-        byte[] bytes = sendString.getBytes();
-        bufferStream.write(AdbProtocol.generateSyncHeader("SEND", sendString.length()));
-        bufferStream.write(ByteBuffer.wrap(bytes));
-        // 发送文件
-        byte[] byteArray = new byte[10240 - 8];
-        int hasSendLen = 0;
-        int allNeedSendLen = file.available();
-        int lastProcess = 0;
-        int len = file.read(byteArray, 0, byteArray.length);
-        do {
-            bufferStream.write(AdbProtocol.generateSyncHeader("DATA", len));
-            bufferStream.write(ByteBuffer.wrap(byteArray, 0, len));
-            hasSendLen += len;
-            int newProcess = (int) (((float) hasSendLen / allNeedSendLen) * 100);
-            if (newProcess != lastProcess) {
-                lastProcess = newProcess;
-                if (handleProcess != null) handleProcess.run(lastProcess);
-            }
-            len = file.read(byteArray, 0, byteArray.length);
-        } while (len > 0);
-        file.close();
-        // 传输完成，为了方便，文件日期定为2024.1.1 0:0
-        bufferStream.write(AdbProtocol.generateSyncHeader("DONE", 1704038400));
-        bufferStream.write(AdbProtocol.generateSyncHeader("QUIT", 0));
-        do {
-            synchronized (this) {
-                wait();
-            }
-        } while (!bufferStream.isClosed());
+        try {
+            // 发送信令，建立push通道
+            String sendString = remotePath + ",33206";
+            byte[] bytes = sendString.getBytes();
+            bufferStream.write(AdbProtocol.generateSyncHeader("SEND", sendString.length()));
+            bufferStream.write(ByteBuffer.wrap(bytes));
+            // 发送文件
+            byte[] byteArray = new byte[10240 - 8];
+            int hasSendLen = 0;
+            int allNeedSendLen = file.available();
+            int lastProcess = 0;
+            int len = file.read(byteArray, 0, byteArray.length);
+            do {
+                bufferStream.write(AdbProtocol.generateSyncHeader("DATA", len));
+                bufferStream.write(ByteBuffer.wrap(byteArray, 0, len));
+                hasSendLen += len;
+                int newProcess = (int) (((float) hasSendLen / allNeedSendLen) * 100);
+                if (newProcess != lastProcess) {
+                    lastProcess = newProcess;
+                    if (handleProcess != null) handleProcess.run(lastProcess);
+                }
+                len = file.read(byteArray, 0, byteArray.length);
+            } while (len > 0);
+            // 传输完成，为了方便，文件日期定为2024.1.1 0:0
+            bufferStream.write(AdbProtocol.generateSyncHeader("DONE", 1704038400));
+            bufferStream.write(AdbProtocol.generateSyncHeader("QUIT", 0));
+            do {
+                synchronized (this) {
+                    wait();
+                }
+            } while (!bufferStream.isClosed());
+        } finally {
+            file.close();
+        }
     }
 
     public String runAdbCmd(String cmd) throws Exception {
         BufferStream bufferStream = open("shell:" + cmd, true);
-        do {
-            synchronized (this) {
+        synchronized (this) {
+            while (!bufferStream.isClosed()) {
                 wait();
             }
-        } while (!bufferStream.isClosed());
+        }
         return new String(bufferStream.readByteArrayBeforeClose().array());
     }
 
@@ -148,8 +160,13 @@ public class Adb {
                 BufferStream bufferStream = connectionStreams.get(message.arg1);
                 boolean isNeedNotify = bufferStream == null;
                 // 新连接
-                if (isNeedNotify)
+                if (isNeedNotify) {
+                    // 对端 CLSE 应答的是本地已关闭的流，直接忽略，避免创建"幽灵"流在 openStreams 里无限泄漏。
+                    // 但对端 CLSE 拒绝了尚未 OKAY 的 OPEN（如服务端端口还没监听）时，仍需创建并关闭该流，
+                    // 让 open() 醒来拿到已关闭的流、调用方(tcpForward)得以重试 —— 否则 open() 永远等不到 OKAY 会挂死。
+                    if (message.command == AdbProtocol.CMD_CLSE && !pendingOpens.contains(message.arg1)) continue;
                     bufferStream = createNewStream(message.arg1, message.arg0, message.arg1 > 0);
+                }
                 switch (message.command) {
                     case AdbProtocol.CMD_OKAY:
                         bufferStream.setCanWrite(true);

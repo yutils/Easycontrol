@@ -120,8 +120,11 @@
     <string name="toast_address_error">地址格式错误</string>
     <string name="toast_timeout">超时</string>
     <string name="toast_connect_server">连接被控端失败</string>
+    <string name="toast_connect_network_error">网络不通，请检查网络连接或设备是否在线</string>
+    <string name="toast_connect_rejected">被设备拒绝，请在目标设备上开启「网络调试」并允许本机授权</string>
     <string name="toast_stream_closed">连接断开</string>
     <string name="toast_float_per">需要悬浮窗权限</string>
+    <string name="toast_home_single_app">桌面不支持单应用投屏</string>
 
     <!-- 重连对话框 -->
     <string name="reconnect_countdown">设备「%1$s」连接异常，%2$d秒后自动重连…</string>

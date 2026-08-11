@@ -8,7 +8,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.os.Binder;
 import android.os.Build;
+import android.os.Process;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -77,6 +79,8 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
     }
 
     private void handleControl(Intent intent) {
+        // 只接受本应用自身发送的控制广播，防止任意 App 触发 shell 命令/关闭会话
+        if (Binder.getCallingUid() != Process.myUid()) return;
         String action = intent.getStringExtra("action");
         String uuid = intent.getStringExtra("uuid");
         if (action == null || uuid == null) return;
@@ -236,13 +240,13 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 
     public synchronized void resetUSB() {
         if (AppData.usbManager == null) return;
-        try {
-            for (Map.Entry<String, UsbDevice> entry : AppData.usbManager.getDeviceList().entrySet()) {
+        for (Map.Entry<String, UsbDevice> entry : AppData.usbManager.getDeviceList().entrySet()) {
+            try {
                 UsbDevice usbDevice = entry.getValue();
-                if (usbDevice == null) return;
+                if (usbDevice == null) continue;
                 if (AppData.usbManager.hasPermission(usbDevice)) new UsbChannel(usbDevice).close();
+            } catch (Exception ignored) {
             }
-        } catch (Exception ignored) {
         }
     }
 

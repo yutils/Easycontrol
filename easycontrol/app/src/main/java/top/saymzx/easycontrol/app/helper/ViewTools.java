@@ -11,11 +11,13 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewPropertyAnimator;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.ScrollView;
 
 import java.util.Locale;
@@ -86,9 +88,26 @@ public class ViewTools {
     }
 
     // 创建Client加载框
+    // 使用普通 Dialog 直接承载内容卡片：不走 AlertDialog(其面板会被主题拉伸成近全屏宽度)，
+    // WRAP_CONTENT 让弹窗紧贴 120dp 的加载卡片，不再有近全屏的白色面板。
     public static Pair<ItemLoadingBinding, Dialog> createLoading(Context context) {
-        ItemLoadingBinding loadingView = ItemLoadingBinding.inflate(LayoutInflater.from(context));
-        return new Pair<>(loadingView, createDialog(context, false, loadingView.getRoot()));
+        // 必须带 parent 展开(root 不为 null 才会从 XML 生成 LayoutParams)，再把布局参数传给 setContentView：
+        // setContentView(View) 会把参数替换成 MATCH_PARENT，120dp 的加载卡片会被收缩成"仅贴内容"的小卡片。
+        ItemLoadingBinding loadingView = ItemLoadingBinding.inflate(LayoutInflater.from(context), new FrameLayout(context), false);
+        Dialog dialog = new Dialog(context);
+        dialog.setContentView(loadingView.getRoot(), loadingView.getRoot().getLayoutParams());
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawableResource(android.R.color.transparent);
+            // 普通 Dialog 不套用 AlertDialog 的最小宽度主题，内容卡片宽多少弹窗就多宽
+            WindowManager.LayoutParams layoutParams = window.getAttributes();
+            layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
+            layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            window.setAttributes(layoutParams);
+        }
+        return new Pair<>(loadingView, dialog);
     }
 
     // 创建纯文本卡片

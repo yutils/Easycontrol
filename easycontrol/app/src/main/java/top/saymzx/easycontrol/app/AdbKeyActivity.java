@@ -52,17 +52,27 @@ public class AdbKeyActivity extends AppCompatActivity {
         }
     }
 
-    // 写入新的密钥公钥文件
+    // 写入新的密钥公钥文件（先校验再覆盖，避免无效密钥导致原密钥丢失）
     private void writeKey() {
         try {
-            try (FileWriter publicKeyWriter = new FileWriter(adbKeyFile.first)) {
-                publicKeyWriter.write(String.valueOf(activityAdbKeyBinding.adbKeyPub.getText()));
-                publicKeyWriter.flush();
+            String pubText = String.valueOf(activityAdbKeyBinding.adbKeyPub.getText());
+            String priText = String.valueOf(activityAdbKeyBinding.adbKeyPri.getText());
+            // 先写入临时文件校验
+            java.io.File tmpPub = new File(adbKeyFile.first + ".tmp");
+            java.io.File tmpPri = new File(adbKeyFile.second + ".tmp");
+            try (FileWriter pubWriter = new FileWriter(tmpPub)) {
+                pubWriter.write(pubText);
+                pubWriter.flush();
             }
-            try (FileWriter privateKeyWriter = new FileWriter(adbKeyFile.second)) {
-                privateKeyWriter.write(String.valueOf(activityAdbKeyBinding.adbKeyPri.getText()));
-                privateKeyWriter.flush();
+            try (FileWriter priWriter = new FileWriter(tmpPri)) {
+                priWriter.write(priText);
+                priWriter.flush();
             }
+            // 校验密钥有效性
+            AdbKeyPair.read(tmpPub, tmpPri);
+            // 校验通过，替换原文件
+            tmpPub.renameTo(adbKeyFile.first);
+            tmpPri.renameTo(adbKeyFile.second);
             AppData.keyPair = AdbKeyPair.read(adbKeyFile.first, adbKeyFile.second);
             Toast.makeText(this, getString(R.string.toast_success), Toast.LENGTH_SHORT).show();
         } catch (Exception ignored) {

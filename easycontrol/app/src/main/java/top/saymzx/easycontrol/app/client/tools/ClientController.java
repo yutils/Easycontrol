@@ -44,9 +44,9 @@ public class ClientController implements TextureView.SurfaceTextureListener {
     private MiniView miniView;
     private FullActivity fullView;
 
-    private Pair<Integer, Integer> videoSize;
-    private Pair<Integer, Integer> maxSize;
-    private Pair<Integer, Integer> surfaceSize;
+    private volatile Pair<Integer, Integer> videoSize;
+    private volatile Pair<Integer, Integer> maxSize;
+    private volatile Pair<Integer, Integer> surfaceSize;
 
     // 执行线程
     private final HandlerThread mainThread = new HandlerThread("easycontrol_client_main");
@@ -127,6 +127,7 @@ public class ClientController implements TextureView.SurfaceTextureListener {
                 default:
                     if (byteBuffer == null) break;
                 case "writeByteBuffer":
+                    if (byteBuffer == null) break;
                     clientStream.writeToMain(byteBuffer);
                     break;
                 case "updateMaxSize":
@@ -172,6 +173,7 @@ public class ClientController implements TextureView.SurfaceTextureListener {
 
     private synchronized void changeToFull() {
         hide();
+        if (AppData.mainActivity == null) return;
         Intent intent = new Intent(AppData.mainActivity, FullActivity.class);
         intent.putExtra("uuid", device.uuid);
         AppData.mainActivity.startActivity(intent);
@@ -210,26 +212,51 @@ public class ClientController implements TextureView.SurfaceTextureListener {
         }
     }
 
-    private synchronized void changeToApp() throws Exception {
+    private void changeToApp() {
         if (noFloatPermission()) {
             PublicTools.logToast("controller", AppData.applicationContext.getString(R.string.toast_float_per), true);
             return;
         }
-        // 获取当前APP
-        String output = clientStream.runShell("dumpsys window | grep mCurrentFocus=Window");
-        // 创建匹配器
-        Matcher matcher = Pattern.compile(" ([a-zA-Z0-9.]+)/").matcher(output);
-        // 进行匹配
-        if (matcher.find()) {
-            Device tempDevice = device.clone(String.valueOf(UUID.randomUUID()));
-            tempDevice.name = "----";
-            tempDevice.startApp = matcher.group(1);
-            // 为了错开界面
-            tempDevice.smallX += 200;
-            tempDevice.smallY += 200;
-            tempDevice.smallLength -= 200;
-            tempDevice.miniY += 200;
-            Client.startDevice(tempDevice);
+        // 在独立线程执行 shell 命令，避免阻塞 mainThread 导致 keepAlive 超时
+        new Thread(() -> {
+            try {
+                String output = clientStream.runShell("dumpsys window | grep mCurrentFocus=Window");
+                Matcher matcher = Pattern.compile(" ([a-zA-Z0-9.]+)/").matcher(output);
+                if (matcher.find()) {
+                    String appPackage = matcher.group(1);
+                    // 当前前台为桌面(Launcher)时无法将其移入虚拟显示进行单应用投屏，直接提示
+                    if (isHomeApp(appPackage)) {
+                        PublicTools.logToast("controller", AppData.applicationContext.getString(R.string.toast_home_single_app), true);
+                        return;
+                    }
+                    Device tempDevice = device.clone(String.valueOf(UUID.randomUUID()));
+                    tempDevice.name = "----";
+                    tempDevice.startApp = appPackage;
+                    tempDevice.smallX += 200;
+                    tempDevice.smallY += 200;
+                    tempDevice.smallLength -= 200;
+                    tempDevice.miniY += 200;
+                    // 切换成功后（原服务端已被新服务端 pkill）再关闭原会话，避免误报「连接断开」；
+                    // 连接失败则原会话保留，不会丢失
+                    tempDevice.onConnectSuccess = () -> Client.sendAction(device.uuid, "close", null, 0);
+                    // Client 构造函数需要创建 Dialog，必须在 UI 线程执行
+                    AppData.uiHandler.post(() -> Client.startDevice(tempDevice));
+                }
+            } catch (Exception ignored) {
+            }
+        }).start();
+    }
+
+    // 判断前台应用是否为桌面(Launcher)，检测失败时返回 false 交由服务端容错兜底
+    private boolean isHomeApp(String appPackage) {
+        try {
+            String homeOutput = clientStream.runShell("cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME");
+            Matcher homeMatcher = Pattern.compile("([a-zA-Z0-9.]+)/").matcher(homeOutput);
+            String homePackage = "";
+            while (homeMatcher.find()) homePackage = homeMatcher.group(1);
+            return !homePackage.isEmpty() && Objects.equals(appPackage, homePackage);
+        } catch (Exception ignored) {
+            return false;
         }
     }
 
@@ -242,8 +269,11 @@ public class ClientController implements TextureView.SurfaceTextureListener {
 
     public void close() {
         hide();
-        mainThread.quitSafely();
-        if (surfaceTexture != null) surfaceTexture.release();
+        // 等待视图移除后再释放 SurfaceTexture 和退出线程，避免硬件渲染器访问已死的 Looper
+        AppData.uiHandler.post(() -> {
+            if (surfaceTexture != null) surfaceTexture.release();
+            mainThread.quitSafely();
+        });
     }
 
     private static final int minLength = PublicTools.dp2px(200f);
@@ -372,7 +402,8 @@ public class ClientController implements TextureView.SurfaceTextureListener {
             String newClipBoardText = String.valueOf(clipBoard.getItemAt(0).getText());
             if (!Objects.equals(nowClipboardText, newClipBoardText)) {
                 nowClipboardText = newClipBoardText;
-                handleAction("writeByteBuffer", ControlPacket.createClipboardEvent(nowClipboardText), 0);
+                ByteBuffer clipPacket = ControlPacket.createClipboardEvent(nowClipboardText);
+                if (clipPacket != null) handleAction("writeByteBuffer", clipPacket, 0);
             }
         }
     }

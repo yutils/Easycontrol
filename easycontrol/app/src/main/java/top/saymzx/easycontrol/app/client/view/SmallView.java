@@ -33,7 +33,7 @@ import top.saymzx.easycontrol.app.helper.ViewTools;
 public class SmallView extends ViewOutlineProvider {
     private final Device device;
     private ClientController clientController;
-    private boolean isShow = false;
+    private volatile boolean isShow = false;
     private boolean light = true;
 
     // 悬浮窗

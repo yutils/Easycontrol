@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class BufferStream {
-    private boolean isClosed = false;
+    private volatile boolean isClosed = false;
     private boolean canWrite;
     private final boolean canMultipleSend;
 

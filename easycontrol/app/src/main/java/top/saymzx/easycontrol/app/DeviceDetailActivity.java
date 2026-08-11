@@ -43,6 +43,8 @@ public class DeviceDetailActivity extends AppCompatActivity {
             device = new Device(UUID.randomUUID().toString(), Device.TYPE_NETWORK);
             device.name = AppData.dbHelper.getDefaultDeviceName();
         } else device = AppData.dbHelper.getByUUID(uuid);
+        // 设备已被删除（UUID过期），直接退出
+        if (device == null) { finish(); return; }
         // 绘制UI
         drawUI();
         // 设置监听
@@ -112,16 +114,31 @@ public class DeviceDetailActivity extends AppCompatActivity {
             device.name = name;
             device.address = device.isLinkDevice() ? device.uuid : address;
             device.startApp = String.valueOf(activityDeviceDetailBinding.startApp.getText());
-            device.adbPort = Integer.parseInt(String.valueOf(activityDeviceDetailBinding.adbPort.getText()));
-            device.serverPort = Integer.parseInt(String.valueOf(activityDeviceDetailBinding.serverPort.getText()));
+            // 端口解析保护
+            try {
+                device.adbPort = Integer.parseInt(String.valueOf(activityDeviceDetailBinding.adbPort.getText()).trim());
+                device.serverPort = Integer.parseInt(String.valueOf(activityDeviceDetailBinding.serverPort.getText()).trim());
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, getString(R.string.toast_config), Toast.LENGTH_SHORT).show();
+                return;
+            }
             // 自定义分辨率
             String width = String.valueOf(activityDeviceDetailBinding.customResolutionWidth.getText());
             String height = String.valueOf(activityDeviceDetailBinding.customResolutionHeight.getText());
             device.customResolutionOnConnect = false;
-            if (activityDeviceDetailBinding.customResolution.getVisibility() != View.GONE && !width.equals("") && !height.equals("") && Integer.parseInt(width) >= 500 && Integer.parseInt(height) >= 500) {
-                device.customResolutionOnConnect = true;
-                device.customResolutionWidth = Integer.parseInt(width);
-                device.customResolutionHeight = Integer.parseInt(height);
+            if (activityDeviceDetailBinding.customResolution.getVisibility() != View.GONE && !width.equals("") && !height.equals("")) {
+                try {
+                    int w = Integer.parseInt(width.trim());
+                    int h = Integer.parseInt(height.trim());
+                    if (w >= 500 && h >= 500) {
+                        device.customResolutionOnConnect = true;
+                        device.customResolutionWidth = w;
+                        device.customResolutionHeight = h;
+                    }
+                } catch (NumberFormatException e) {
+                    Toast.makeText(this, getString(R.string.toast_config), Toast.LENGTH_SHORT).show();
+                    return;
+                }
             }
             // 更新数据库
             if (isNew) AppData.dbHelper.insert(device);
@@ -138,9 +155,11 @@ public class DeviceDetailActivity extends AppCompatActivity {
         Pair<ItemLoadingBinding, Dialog> loading = ViewTools.createLoading(this);
         loading.second.show();
         new Thread(() -> {
-            ArrayList<String> scannedAddresses = PublicTools.scanAddress();
+            java.util.List<String> scannedAddresses = PublicTools.scanAddress();
             loading.second.cancel();
             AppData.uiHandler.post(() -> {
+                // 扫描期间 Activity 可能已销毁（旋转/退出），此时 show 会抛 BadTokenException
+                if (isFinishing() || isDestroyed()) return;
                 ItemScanAddressListBinding scanAddressListView = ItemScanAddressListBinding.inflate(LayoutInflater.from(this));
                 Dialog dialog = ViewTools.createDialog(this, true, scanAddressListView.getRoot());
                 for (String i : scannedAddresses) {

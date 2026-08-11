@@ -22,6 +22,7 @@ android {
 
     buildTypes {
         debug {
+            applicationIdSuffix ".debug" //包名后缀
             buildConfigField "boolean", "ENABLE_DEBUG_FEATURE", "true"
             manifestPlaceholders = [app_name: "@string/app_name_dev", app_icon: "@mipmap/ic_launcher_dev", app_icon_round: "@mipmap/ic_launcher_dev_round"]
             debuggable true

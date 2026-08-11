@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         myBroadcastReceiver.unRegister(this);
+        AppData.mainActivity = null;
         super.onDestroy();
     }
 
@@ -138,14 +139,19 @@ public class MainActivity extends AppCompatActivity {
                 ContentResolver contentProvider = getContentResolver();
                 InputStream inputStream = contentProvider.openInputStream(uri);
                 //根据Uri查询文件名
-                try (Cursor cursor = contentProvider.query(uri, null, null, null, null)) {
-                    if (cursor != null) {
-                        cursor.moveToFirst();
-                        int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                        fileName = cursor.getString(nameIndex);
+                try {
+                    try (Cursor cursor = contentProvider.query(uri, null, null, null, null)) {
+                        if (cursor != null) {
+                            cursor.moveToFirst();
+                            int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                            fileName = cursor.getString(nameIndex);
+                        }
                     }
+                    deviceListAdapter.pushFile(inputStream, fileName);
+                } catch (Exception e) {
+                    if (inputStream != null) try { inputStream.close(); } catch (Exception ignored) {}
+                    throw e;
                 }
-                deviceListAdapter.pushFile(inputStream, fileName);
             } catch (Exception ignored) {
                 deviceListAdapter.pushFile(null, null);
             }

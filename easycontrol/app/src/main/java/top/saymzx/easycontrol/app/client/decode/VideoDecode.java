@@ -16,6 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class VideoDecode {
     private MediaCodec decodec;
+    private final Runnable onError;
     private final MediaCodec.Callback callback = new MediaCodec.Callback() {
         @Override
         public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inIndex) {
@@ -32,6 +33,8 @@ public class VideoDecode {
 
         @Override
         public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
+            // 解码器致命错误：关闭会话，避免视频解码线程永久阻塞、ADB 中继缓冲无界增长
+            if (onError != null) onError.run();
         }
 
         @Override
@@ -39,7 +42,8 @@ public class VideoDecode {
         }
     };
 
-    public VideoDecode(Pair<Integer, Integer> videoSize, Surface surface, ByteBuffer csd0, ByteBuffer csd1, int codecType, Handler playHandler) throws IOException, InterruptedException {
+    public VideoDecode(Pair<Integer, Integer> videoSize, Surface surface, ByteBuffer csd0, ByteBuffer csd1, int codecType, Handler playHandler, Runnable onError) throws IOException, InterruptedException {
+        this.onError = onError;
         setVideoDecodec(videoSize, surface, csd0, csd1, codecType, playHandler);
     }
 

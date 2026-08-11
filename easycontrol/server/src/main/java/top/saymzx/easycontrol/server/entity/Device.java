@@ -43,10 +43,21 @@ public final class Device {
     public static void init() throws Exception {
         // 若启动单个应用则需创建虚拟Dispaly
         if (!Objects.equals(Options.startApp, "")) {
-            virtualDisplay = DisplayManager.createVirtualDisplay();
-            displayId = virtualDisplay.getDisplay().getDisplayId();
-            startAndMoveAppToVirtualDisplay();
-            needReset = true;
+            try {
+                virtualDisplay = DisplayManager.createVirtualDisplay();
+                displayId = virtualDisplay.getDisplay().getDisplayId();
+                startAndMoveAppToVirtualDisplay();
+                needReset = true;
+            } catch (Exception e) {
+                // 无法移入虚拟显示（如桌面/系统应用，或系统不支持虚拟显示），回退为普通全屏镜像
+                if (virtualDisplay != null) {
+                    virtualDisplay.release();
+                    virtualDisplay = null;
+                }
+                displayId = Display.DEFAULT_DISPLAY;
+                Options.startApp = "";
+                // needReset 保持 false：release() 时 fallbackResolution() 被跳过，不再触碰失败的虚拟显示
+            }
         }
         getRealSize();
         updateSize();
@@ -161,7 +172,8 @@ public final class Device {
         if (Device.needReset) {
             if (virtualDisplay != null) {
                 int appStackId = getAppStackId();
-                if (appStackId == -1)
+                // 应用仍在栈中则先移回默认显示再释放虚拟显示，避免被镜像的应用被销毁
+                if (appStackId != -1)
                     Device.execReadOutput("am display move-stack " + appStackId + " " + Display.DEFAULT_DISPLAY);
                 virtualDisplay.release();
             } else {

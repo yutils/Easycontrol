@@ -8,13 +8,16 @@ import android.view.Surface;
 
 import java.nio.ByteBuffer;
 
+import top.saymzx.easycontrol.app.R;
 import top.saymzx.easycontrol.app.client.Client;
 import top.saymzx.easycontrol.app.client.decode.AudioDecode;
 import top.saymzx.easycontrol.app.client.decode.VideoDecode;
+import top.saymzx.easycontrol.app.entity.AppData;
 import top.saymzx.easycontrol.app.helper.PublicTools;
 
 public class ClientPlayer {
-    private boolean isClose = false;
+    private volatile boolean isClose = false;
+    private final String uuid;
     private final ClientController clientController;
     private final ClientStream clientStream;
     private final Thread mainStreamInThread = new Thread(this::mainStreamIn);
@@ -30,6 +33,7 @@ public class ClientPlayer {
     private volatile long lastReceiveTime = System.currentTimeMillis();
 
     public ClientPlayer(String uuid, ClientStream clientStream) {
+        this.uuid = uuid;
         clientController = Client.getClientController(uuid);
         this.clientStream = clientStream;
         if (clientController == null) return;
@@ -84,18 +88,24 @@ public class ClientPlayer {
 
     private void videoStreamIn() {
         VideoDecode videoDecode = null;
+        Surface surface = null;
         try {
             int codecType = clientStream.readByteFromVideo();
             Pair<Integer, Integer> videoSize = new Pair<>(clientStream.readIntFromVideo(), clientStream.readIntFromVideo());
-            Surface surface = new Surface(clientController.getTextureView().getSurfaceTexture());
+            surface = new Surface(clientController.getTextureView().getSurfaceTexture());
             ByteBuffer csd0 = clientStream.readFrameFromVideo();
             // H264需要csd1(PPS)，H265(1)和AV1(2)不需要
             ByteBuffer csd1 = (codecType == 0) ? clientStream.readFrameFromVideo() : null;
-            videoDecode = new VideoDecode(videoSize, surface, csd0, csd1, codecType, playHandler);
+            videoDecode = new VideoDecode(videoSize, surface, csd0, csd1, codecType, playHandler, () -> {
+                // 解码器致命错误：关闭会话，避免视频解码线程停摆后缓冲无界增长
+                byte[] err = ("video" + AppData.applicationContext.getString(R.string.toast_stream_closed)).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                Client.sendAction(uuid, "close", ByteBuffer.wrap(err), 0);
+            });
             while (!Thread.interrupted()) videoDecode.decodeIn(clientStream.readFrameFromVideo());
         } catch (Exception ignored) {
         } finally {
             if (videoDecode != null) videoDecode.release();
+            if (surface != null) surface.release();
         }
     }
 
@@ -104,7 +114,8 @@ public class ClientPlayer {
         isClose = true;
         mainStreamInThread.interrupt();
         videoStreamInThread.interrupt();
-        playHandlerThread.interrupt();
+        // 延迟退出 playHandlerThread，等待视图移除后再退出，避免硬件渲染器访问已死的 Looper
+        AppData.uiHandler.post(() -> playHandlerThread.quitSafely());
     }
 
     // 检查心跳是否超时（连接异常断开）
