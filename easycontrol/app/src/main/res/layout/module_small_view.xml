@@ -205,6 +205,67 @@
                 android:tint="@color/clientNavIcon" />
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="152dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/button_volume"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/background_client_button"
+                android:focusable="false"
+                android:padding="9dp"
+                android:src="@drawable/volume_up"
+                android:tint="@color/clientNavIcon" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/volume_bar"
+            android:layout_width="152dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/image_volume_mute"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:focusable="false"
+                android:padding="9dp"
+                android:src="@drawable/volume_off"
+                android:tint="@color/clientNavIcon" />
+
+            <SeekBar
+                android:id="@+id/seekbar_volume"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3"
+                android:maxHeight="4dp"
+                android:minHeight="4dp"
+                android:paddingStart="2dp"
+                android:paddingEnd="2dp"
+                android:progressTint="@color/onBlackBacnground"
+                android:splitTrack="false"
+                android:thumbTint="@color/onBlackBacnground" />
+
+            <ImageView
+                android:id="@+id/image_volume_max"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:focusable="false"
+                android:padding="9dp"
+                android:src="@drawable/volume_up"
+                android:tint="@color/clientNavIcon" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <View

@@ -149,7 +149,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                     deviceListAdapter.pushFile(inputStream, fileName);
                 } catch (Exception e) {
-                    if (inputStream != null) try { inputStream.close(); } catch (Exception ignored) {}
+                    if (inputStream != null) try {
+                        inputStream.close();
+                    } catch (Exception ignored) {
+                    }
                     throw e;
                 }
             } catch (Exception ignored) {

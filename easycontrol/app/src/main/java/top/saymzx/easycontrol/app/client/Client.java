@@ -4,8 +4,8 @@ import android.app.Dialog;
 import android.util.Pair;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import top.saymzx.easycontrol.app.client.tools.AdbTools;
 import top.saymzx.easycontrol.app.client.tools.ClientController;
@@ -122,6 +122,7 @@ public class Client {
             try {
                 if (device.lockOnClose) clientStream.writeToMain(ControlPacket.createPowerEvent(0));
                 else if (device.lightOnClose) clientStream.writeToMain(ControlPacket.createPowerEvent(1));
+                if (device.muteOnClose) clientStream.writeToMain(ControlPacket.createVolumeEvent(0));
             } catch (Exception ignored) {
             }
         }

@@ -31,6 +31,7 @@ import top.saymzx.easycontrol.server.wrappers.InputManager;
 import top.saymzx.easycontrol.server.wrappers.PowerManager;
 import top.saymzx.easycontrol.server.wrappers.SurfaceControl;
 import top.saymzx.easycontrol.server.wrappers.WindowManager;
+import top.saymzx.easycontrol.server.wrappers.AudioManager;
 
 public final class Device {
     private static int displayId = Display.DEFAULT_DISPLAY;
@@ -289,6 +290,19 @@ public final class Device {
         boolean accelerometerRotation = !WindowManager.isRotationFrozen(displayId);
         WindowManager.freezeRotation(displayId, (displayInfo.rotation == 0 || displayInfo.rotation == 3) ? 1 : 0);
         if (accelerometerRotation) WindowManager.thawRotation(displayId);
+    }
+
+    // 修改媒体音量(STREAM_MUSIC，滑块0-100)：优先用 AudioService 绝对音量(系统设置音量同一路径，全ROM通用)；
+    // AudioService 不可用(极老系统)时按键兜底(仅静音)
+    public static void changeVolume(int volume) {
+        if (volume < 0 || volume > 100) return;
+        int stream = 3; // STREAM_MUSIC
+        int serverMax = AudioManager.getStreamMaxVolume(stream);
+        if (serverMax > 0) {
+            int index = Math.round(volume * serverMax / 100f);
+            if (AudioManager.setStreamVolume(stream, index)) return;
+        }
+        if (volume == 0) for (int i = 0; i < 20; i++) keyEvent(KeyEvent.KEYCODE_VOLUME_DOWN, 0);
     }
 
     public static String execReadOutput(String cmd) throws IOException, InterruptedException {

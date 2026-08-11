@@ -28,6 +28,7 @@ import top.saymzx.easycontrol.server.wrappers.InputManager;
 import top.saymzx.easycontrol.server.wrappers.PowerManager;
 import top.saymzx.easycontrol.server.wrappers.SurfaceControl;
 import top.saymzx.easycontrol.server.wrappers.WindowManager;
+import top.saymzx.easycontrol.server.wrappers.AudioManager;
 
 // 此部分代码摘抄借鉴了著名投屏软件Scrcpy的开源代码(https://github.com/Genymobile/scrcpy/tree/master/server)
 public final class Server {
@@ -109,6 +110,8 @@ public final class Server {
         SurfaceControl.init();
         // 6
         PowerManager.init(getService("power", "android.os.IPowerManager"));
+        // 7
+        AudioManager.init(getService("audio", "android.media.IAudioService"));
     }
 
     private static IInterface getService(String service, String type) {
@@ -202,6 +205,9 @@ public final class Server {
                         break;
                     case 9:
                         Device.changeResolution(mainInputStream.readInt(), mainInputStream.readInt());
+                        break;
+                    case 10:
+                        Device.changeVolume(mainInputStream.readInt());
                         break;
                 }
             }

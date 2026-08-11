@@ -6,6 +6,7 @@ import android.graphics.PixelFormat;
 import android.os.Build;
 import android.text.InputType;
 import android.util.DisplayMetrics;
+import android.util.Pair;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.WindowManager;
+import android.widget.SeekBar;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -193,6 +195,68 @@ public class SmallView extends ViewOutlineProvider {
             clientController.handleAction(light ? "buttonLight" : "buttonLightOff", null, 0);
             changeBarView();
         });
+        smallView.buttonVolume.setOnClickListener(v -> changeVolumeBar());
+        // 滑块两端图标：直接切静音/切最大
+        smallView.imageVolumeMute.setOnClickListener(v -> setVolumeByIcon(0));
+        smallView.imageVolumeMax.setOnClickListener(v -> setVolumeByIcon(100));
+        smallView.seekbarVolume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser) return;
+                clientController.handleAction("setVolume", ControlPacket.createVolumeEvent(progress), 0);
+                updateVolumeIcon(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+    }
+
+    // 展开/收起音量滑块：展开前在后台读取被控机当前音量并定位滑块，老系统读取失败则不展开
+    private void changeVolumeBar() {
+        if (smallView.volumeBar.getVisibility() == View.VISIBLE) {
+            smallView.volumeBar.setVisibility(View.GONE);
+            return;
+        }
+        smallView.volumeBar.setVisibility(View.VISIBLE);
+        smallView.seekbarVolume.setProgress(0);
+        new Thread(() -> {
+            Pair<Integer, Integer> volumeInfo;
+            try {
+                volumeInfo = clientController.getVolumeInfo();
+            } catch (Exception ignored) {
+                volumeInfo = null;
+            }
+            final Pair<Integer, Integer> volumeInfoFinal = volumeInfo;
+            AppData.uiHandler.post(() -> {
+                if (volumeInfoFinal == null) {
+                    smallView.volumeBar.setVisibility(View.GONE);
+                    PublicTools.logToast("SmallView", AppData.applicationContext.getString(R.string.toast_volume_not_support), true);
+                    return;
+                }
+                // 滑块统一 0-100，服务端按被控机自身音量上限换算
+                smallView.seekbarVolume.setMax(100);
+                smallView.seekbarVolume.setProgress(Math.round(volumeInfoFinal.first * 100f / volumeInfoFinal.second));
+                updateVolumeIcon(volumeInfoFinal.first);
+            });
+        }).start();
+    }
+
+    // 音量图标随静音状态切换
+    private void updateVolumeIcon(int volume) {
+        smallView.buttonVolume.setImageResource(volume == 0 ? R.drawable.volume_off : R.drawable.volume_up);
+    }
+
+    // 点击滑块两端图标：直接切到静音(0)或最大(100)，滑块归位并同步被控机
+    private void setVolumeByIcon(int volume) {
+        smallView.seekbarVolume.setProgress(volume);
+        clientController.handleAction("setVolume", ControlPacket.createVolumeEvent(volume), 0);
+        updateVolumeIcon(volume);
     }
 
     // 导航栏隐藏
@@ -205,7 +269,10 @@ public class SmallView extends ViewOutlineProvider {
         boolean toShowView = smallView.barView.getVisibility() == View.GONE;
         ViewTools.viewAnim(smallView.barView, toShowView, 0, PublicTools.dp2px(-40f), (isStart -> {
             if (isStart && toShowView) smallView.barView.setVisibility(View.VISIBLE);
-            else if (!isStart && !toShowView) smallView.barView.setVisibility(View.GONE);
+            else if (!isStart && !toShowView) {
+                smallView.barView.setVisibility(View.GONE);
+                smallView.volumeBar.setVisibility(View.GONE);
+            }
         }));
     }
 

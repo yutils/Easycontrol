@@ -112,6 +112,10 @@ public class ClientController implements TextureView.SurfaceTextureListener {
                 case "buttonRotate":
                     clientStream.writeToMain(ControlPacket.createRotateEvent());
                     break;
+                case "setVolume":
+                    // byteBuffer 已是完整音量包([10][int])，直接发送，避免重复包装
+                    clientStream.writeToMain(byteBuffer);
+                    break;
                 case "keepAlive":
                     clientStream.writeToMain(ControlPacket.createKeepAlive());
                     break;
@@ -416,6 +420,14 @@ public class ClientController implements TextureView.SurfaceTextureListener {
     private void runShell(ByteBuffer byteBuffer) throws Exception {
         String cmd = new String(byteBuffer.array());
         clientStream.runShell(cmd);
+    }
+
+    // 读取被控机媒体音量：返回(当前值, 最大值)；读取失败(老系统/media_session不可用)返回null
+    public Pair<Integer, Integer> getVolumeInfo() throws Exception {
+        String output = clientStream.runShell("cmd media_session volume --stream 3 --get");
+        Matcher matcher = Pattern.compile("volume is (\\d+) in range \\[(\\d+)\\.\\.(\\d+)\\]").matcher(output);
+        if (!matcher.find()) return null;
+        return new Pair<>(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(3)));
     }
 
     @Override

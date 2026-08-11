@@ -80,6 +80,8 @@
     <string name="device_lock_on_close_detail">断开时自动锁定被控端，设置此项后“断开时恢复背光”功能失效</string>
     <string name="device_light_on_close">断开时恢复背光</string>
     <string name="device_light_on_close_detail">断开时自动恢复被控端背光</string>
+    <string name="device_mute_on_close">断开时被控机静音</string>
+    <string name="device_mute_on_close_detail">断开连接时将远程手机音量设置为静音</string>
     <string name="device_reconnect_on_close">自动重连</string>
     <string name="device_reconnect_on_close_detail">当意外断开时，自动重新连接</string>
 
@@ -125,6 +127,7 @@
     <string name="toast_stream_closed">连接断开</string>
     <string name="toast_float_per">需要悬浮窗权限</string>
     <string name="toast_home_single_app">桌面不支持单应用投屏</string>
+    <string name="toast_volume_not_support">设备系统过低，不支持音量调节</string>
 
     <!-- 重连对话框 -->
     <string name="reconnect_countdown">设备「%1$s」连接异常，%2$d秒后自动重连…</string>

@@ -60,7 +60,10 @@ public class AudioDecode {
             setLoudnessEnhancer();
         } catch (Exception e) {
             // 后续步骤失败时释放已创建的 MediaCodec，避免系统资源泄漏
-            try { decodec.release(); } catch (Exception ignored) {}
+            try {
+                decodec.release();
+            } catch (Exception ignored) {
+            }
             throw e;
         }
     }

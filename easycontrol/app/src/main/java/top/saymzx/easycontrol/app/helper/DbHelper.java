@@ -16,7 +16,7 @@ import top.saymzx.easycontrol.app.entity.Device;
 public class DbHelper extends SQLiteOpenHelper {
 
     private static final String dataBaseName = "app.db";
-    private static final int version = 23;
+    private static final int version = 24;
     private final String tableName = "DevicesDb";
 
     public DbHelper(Context context) {
@@ -54,6 +54,7 @@ public class DbHelper extends SQLiteOpenHelper {
         stringBuilder.append("lockOnClose integer,");
         stringBuilder.append("lightOnClose integer,");
         stringBuilder.append("reconnectOnClose integer,");
+        stringBuilder.append("muteOnClose integer,");
         stringBuilder.append("customResolutionWidth integer,");
         stringBuilder.append("customResolutionHeight integer,");
         stringBuilder.append("smallX integer,");
@@ -158,6 +159,7 @@ public class DbHelper extends SQLiteOpenHelper {
         values.put("lockOnClose", device.lockOnClose ? 1 : 0);
         values.put("lightOnClose", device.lightOnClose ? 1 : 0);
         values.put("reconnectOnClose", device.reconnectOnClose ? 1 : 0);
+        values.put("muteOnClose", device.muteOnClose ? 1 : 0);
         values.put("customResolutionWidth", device.customResolutionWidth);
         values.put("customResolutionHeight", device.customResolutionHeight);
         values.put("smallX", device.smallX);
@@ -273,6 +275,10 @@ public class DbHelper extends SQLiteOpenHelper {
                 }
                 case "reconnectOnClose": {
                     device.reconnectOnClose = cursor.getInt(i) == 1;
+                    break;
+                }
+                case "muteOnClose": {
+                    device.muteOnClose = cursor.getInt(i) == 1;
                     break;
                 }
                 case "customResolutionWidth": {

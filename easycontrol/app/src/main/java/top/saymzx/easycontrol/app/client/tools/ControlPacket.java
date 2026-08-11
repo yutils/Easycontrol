@@ -100,4 +100,13 @@ public final class ControlPacket {
         return byteBuffer;
     }
 
+    // 音量事件(被控机STREAM_MUSIC绝对音量)
+    public static ByteBuffer createVolumeEvent(int volume) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(5);
+        byteBuffer.put((byte) 10);
+        byteBuffer.putInt(volume);
+        byteBuffer.flip();
+        return byteBuffer;
+    }
+
 }

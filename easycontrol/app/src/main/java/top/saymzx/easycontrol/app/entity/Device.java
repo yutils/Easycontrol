@@ -32,6 +32,7 @@ public class Device {
     public boolean lockOnClose = false;
     public boolean lightOnClose = false;
     public boolean reconnectOnClose = false;
+    public boolean muteOnClose = true;
     public int customResolutionWidth = 1080;
     public int customResolutionHeight = 2400;
     public int smallX = 200;
@@ -90,6 +91,7 @@ public class Device {
         newDevice.lockOnClose = lockOnClose;
         newDevice.lightOnClose = lightOnClose;
         newDevice.reconnectOnClose = reconnectOnClose;
+        newDevice.muteOnClose = muteOnClose;
 
         newDevice.customResolutionWidth = customResolutionWidth;
         newDevice.customResolutionHeight = customResolutionHeight;

@@ -80,6 +80,8 @@
     <string name="device_lock_on_close_detail">Lock remote device when disconnected, the "Reset backlight" function becomes invalid when this item is set.</string>
     <string name="device_light_on_close">Reset backlight</string>
     <string name="device_light_on_close_detail">Restore remote device\'s backlight when disconnected (ignored when auto lock is enabled)</string>
+    <string name="device_mute_on_close">Mute device on disconnect</string>
+    <string name="device_mute_on_close_detail">Set the remote device\'s volume to mute when disconnecting</string>
     <string name="device_reconnect_on_close">Auto reconnect</string>
     <string name="device_reconnect_on_close_detail">Auto reconnect to remote device when accidentally disconnected</string>
 
@@ -125,6 +127,7 @@
     <string name="toast_stream_closed">Disconnected</string>
     <string name="toast_float_per">Need floating window permission</string>
     <string name="toast_home_single_app">Cannot single-app cast the home screen</string>
+    <string name="toast_volume_not_support">Device system too old, volume control not supported</string>
 
     <!-- Reconnect dialog -->
     <string name="reconnect_countdown">Device \"%1$s\" connection abnormal, reconnecting in %2$d seconds…</string>

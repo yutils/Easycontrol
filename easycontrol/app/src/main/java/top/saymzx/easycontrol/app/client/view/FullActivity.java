@@ -9,8 +9,10 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -45,7 +47,10 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
         String uuid = getIntent().getStringExtra("uuid");
         device = Client.getDevice(uuid);
         clientController = Client.getClientController(uuid);
-        if (device == null || clientController == null) { finish(); return; }
+        if (device == null || clientController == null) {
+            finish();
+            return;
+        }
         clientController.setFullView(this);
         // 初始化
         activityFullBinding.barView.setVisibility(View.GONE);
@@ -144,6 +149,26 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
             clientController.handleAction(light ? "buttonLight" : "buttonLightOff", null, 0);
             changeBarView();
         });
+        activityFullBinding.buttonVolume.setOnClickListener(v -> changeVolumeBar());
+        // 滑块两端图标：直接切静音/切最大
+        activityFullBinding.imageVolumeMute.setOnClickListener(v -> setVolumeByIcon(0));
+        activityFullBinding.imageVolumeMax.setOnClickListener(v -> setVolumeByIcon(100));
+        activityFullBinding.seekbarVolume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (!fromUser) return;
+                clientController.handleAction("setVolume", ControlPacket.createVolumeEvent(progress), 0);
+                updateVolumeIcon(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
         activityFullBinding.buttonMore.setOnClickListener(v -> changeBarView());
         activityFullBinding.buttonAutoRotate.setOnClickListener(v -> {
             autoRotate = !autoRotate;
@@ -169,8 +194,53 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
         int ty = isLandscape ? 0 : PublicTools.dp2px(40f);
         ViewTools.viewAnim(activityFullBinding.barView, toShowView, tx, ty, (isStart -> {
             if (isStart && toShowView) activityFullBinding.barView.setVisibility(View.VISIBLE);
-            else if (!isStart && !toShowView) activityFullBinding.barView.setVisibility(View.GONE);
+            else if (!isStart && !toShowView) {
+                activityFullBinding.barView.setVisibility(View.GONE);
+                activityFullBinding.volumeBar.setVisibility(View.GONE);
+            }
         }));
+    }
+
+    // 展开/收起音量滑块：展开前在后台读取被控机当前音量并定位滑块，老系统读取失败则不展开
+    private void changeVolumeBar() {
+        if (activityFullBinding.volumeBar.getVisibility() == View.VISIBLE) {
+            activityFullBinding.volumeBar.setVisibility(View.GONE);
+            return;
+        }
+        activityFullBinding.volumeBar.setVisibility(View.VISIBLE);
+        activityFullBinding.seekbarVolume.setProgress(0);
+        new Thread(() -> {
+            Pair<Integer, Integer> volumeInfo;
+            try {
+                volumeInfo = clientController.getVolumeInfo();
+            } catch (Exception ignored) {
+                volumeInfo = null;
+            }
+            final Pair<Integer, Integer> volumeInfoFinal = volumeInfo;
+            runOnUiThread(() -> {
+                if (volumeInfoFinal == null) {
+                    activityFullBinding.volumeBar.setVisibility(View.GONE);
+                    PublicTools.logToast("FullActivity", AppData.applicationContext.getString(R.string.toast_volume_not_support), true);
+                    return;
+                }
+                // 滑块统一 0-100，服务端按被控机自身音量上限换算
+                activityFullBinding.seekbarVolume.setMax(100);
+                activityFullBinding.seekbarVolume.setProgress(Math.round(volumeInfoFinal.first * 100f / volumeInfoFinal.second));
+                updateVolumeIcon(volumeInfoFinal.first);
+            });
+        }).start();
+    }
+
+    // 音量图标随静音状态切换
+    private void updateVolumeIcon(int volume) {
+        activityFullBinding.buttonVolume.setImageResource(volume == 0 ? R.drawable.volume_off : R.drawable.volume_up);
+    }
+
+    // 点击滑块两端图标：直接切到静音(0)或最大(100)，滑块归位并同步被控机
+    private void setVolumeByIcon(int volume) {
+        activityFullBinding.seekbarVolume.setProgress(volume);
+        clientController.handleAction("setVolume", ControlPacket.createVolumeEvent(volume), 0);
+        updateVolumeIcon(volume);
     }
 
     private int lastOrientation = -1;

@@ -11,7 +11,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 import top.saymzx.easycontrol.app.databinding.ActivityDeviceDetailBinding;
@@ -44,7 +43,10 @@ public class DeviceDetailActivity extends AppCompatActivity {
             device.name = AppData.dbHelper.getDefaultDeviceName();
         } else device = AppData.dbHelper.getByUUID(uuid);
         // 设备已被删除（UUID过期），直接退出
-        if (device == null) { finish(); return; }
+        if (device == null) {
+            finish();
+            return;
+        }
         // 绘制UI
         drawUI();
         // 设置监听
@@ -85,6 +87,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
         activityDeviceDetailBinding.layoutOnClose.setOnClickListener(v -> activityDeviceDetailBinding.layoutOnCloseSub.setVisibility(activityDeviceDetailBinding.layoutOnCloseSub.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE));
         activityDeviceDetailBinding.layoutOnCloseSub.addView(ViewTools.createSwitchCard(this, getString(R.string.device_lock_on_close), getString(R.string.device_lock_on_close_detail), device.lockOnClose, isChecked -> device.lockOnClose = isChecked).getRoot());
         activityDeviceDetailBinding.layoutOnCloseSub.addView(ViewTools.createSwitchCard(this, getString(R.string.device_light_on_close), getString(R.string.device_light_on_close_detail), device.lightOnClose, isChecked -> device.lightOnClose = isChecked).getRoot());
+        activityDeviceDetailBinding.layoutOnCloseSub.addView(ViewTools.createSwitchCard(this, getString(R.string.device_mute_on_close), getString(R.string.device_mute_on_close_detail), device.muteOnClose, isChecked -> device.muteOnClose = isChecked).getRoot());
         activityDeviceDetailBinding.layoutOnCloseSub.addView(ViewTools.createSwitchCard(this, getString(R.string.device_reconnect_on_close), getString(R.string.device_reconnect_on_close_detail), device.reconnectOnClose, isChecked -> device.reconnectOnClose = isChecked).getRoot());
         // 参数
         activityDeviceDetailBinding.layoutOption.setOnClickListener(v -> activityDeviceDetailBinding.layoutOptionSub.setVisibility(activityDeviceDetailBinding.layoutOptionSub.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE));
