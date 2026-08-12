@@ -44,6 +44,9 @@
     <color name="clientNavBar">#99000000</color>
     <color name="clientNavIcon">#FFFFFF</color>
 
+    <!-- 虚拟鼠标开启态高亮 -->
+    <color name="mouseActive">#4ADE80</color>
+
     <!-- 彩色图标背景：降低饱和度，更柔和现代 -->
     <color name="color1">#ECFDF5</color>
     <color name="onColor1">#10B981</color>

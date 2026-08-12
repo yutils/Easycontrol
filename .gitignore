@@ -16,4 +16,12 @@ easycontrol/app/src/main/java/top/saymzx/easycontrol/app/helper/ActiveHelper.jav
 easycontrol/cloud
 easycontrol/doc
 easycontrol/build
-/.idea
+easycontrol/analyze_fixed*
+easycontrol/ec_shot_*
+easycontrol/ui.xml
+
+.idea
+_test
+.verify
+validate_new_logic.py
+.claude

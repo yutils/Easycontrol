@@ -4,20 +4,36 @@ import static android.content.ClipDescription.MIMETYPE_TEXT_PLAIN;
 
 import android.annotation.SuppressLint;
 import android.content.ClipData;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.provider.MediaStore;
 import android.util.Pair;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.TextureView;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -115,6 +131,19 @@ public class ClientController implements TextureView.SurfaceTextureListener {
                 case "setVolume":
                     // byteBuffer 已是完整音量包([10][int])，直接发送，避免重复包装
                     clientStream.writeToMain(byteBuffer);
+                    break;
+                case "toggleMouse":
+                    toggleMouse();
+                    break;
+                case "screenshot":
+                    clientStream.writeToMain(ControlPacket.createScreenshotEvent());
+                    break;
+                case "toggleRecord":
+                    toggleRecord();
+                    break;
+                case "saveScreenshot":
+                    // PNG 解码/压缩/写盘较耗时(大图可达数秒)，移到后台线程，避免阻塞主线程的控制包/心跳处理
+                    new Thread(() -> saveScreenshot(byteBuffer)).start();
                     break;
                 case "keepAlive":
                     clientStream.writeToMain(ControlPacket.createKeepAlive());
@@ -342,7 +371,13 @@ public class ClientController implements TextureView.SurfaceTextureListener {
             }
         }
         // 更新大小
+        // 容器为 FrameLayout，不继承容器 android:gravity；须在子项上显式 layout_gravity 居中，否则高(竖)屏画面会顶到左边
+        // 全屏↔小窗/迷你切换或旋转重建期间 textureView 可能已从父容器移除，getLayoutParams() 返回 null，须判空
         ViewGroup.LayoutParams layoutParams = textureView.getLayoutParams();
+        if (layoutParams == null) return;
+        if (layoutParams instanceof FrameLayout.LayoutParams) {
+            ((FrameLayout.LayoutParams) layoutParams).gravity = Gravity.CENTER;
+        }
         layoutParams.width = surfaceSize.first;
         layoutParams.height = surfaceSize.second;
         textureView.setLayoutParams(layoutParams);
@@ -359,6 +394,10 @@ public class ClientController implements TextureView.SurfaceTextureListener {
     private void setTouchListener() {
         textureView.setOnTouchListener((view, event) -> {
             if (surfaceSize == null) return true;
+            if (mouseMode) {
+                handleMouseEvent(event);
+                return true;
+            }
             int action = event.getActionMasked();
             if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
                 int i = event.getActionIndex();
@@ -396,6 +435,165 @@ public class ClientController implements TextureView.SurfaceTextureListener {
         handleAction("writeByteBuffer", ControlPacket.createTouchEvent(action, p, (float) x / surfaceSize.first, (float) y / surfaceSize.second, offsetTime), 0);
     }
 
+    // ===== 虚拟鼠标(触控板式相对移动) =====
+    // 光标位置由服务端累计，客户端同步累计用于绘制覆盖层
+    private volatile boolean mouseMode = false;
+    private ImageView cursorOverlay;
+    private float cursorX = 0.5f;
+    private float cursorY = 0.5f;
+    // 单指手势状态
+    private boolean moved = false;
+    private boolean suppressGesture = false;
+    private long singleDownTime = 0;
+    private float singleDownX = 0f;
+    private float singleDownY = 0f;
+    private float lastX = 0f;
+    private float lastY = 0f;
+    private float pendingDx = 0f;
+    private float pendingDy = 0f;
+    // 双指手势状态
+    private boolean scrollMode = false;
+    private boolean twoFingerTap = false;
+    private float scrollLastY = 0f;
+    private int activePointers = 0;
+
+    private static final float mouseTapThreshold = PublicTools.dp2px(8f);
+
+    public boolean isMouseMode() {
+        return mouseMode;
+    }
+
+    private void toggleMouse() {
+        mouseMode = !mouseMode;
+        if (mouseMode) showCursorOverlay();
+        else hideCursorOverlay();
+    }
+
+    // 切换视图(全屏/小窗)后重新挂载光标覆盖层
+    public void showCursorOverlay() {
+        AppData.uiHandler.post(() -> {
+            ViewGroup parent = (ViewGroup) textureView.getParent();
+            if (parent == null) return;
+            if (cursorOverlay == null) {
+                cursorOverlay = new ImageView(AppData.applicationContext);
+                cursorOverlay.setImageResource(R.drawable.cursor);
+                cursorOverlay.setClickable(false);
+                int size = PublicTools.dp2px(22f);
+                parent.addView(cursorOverlay, new FrameLayout.LayoutParams(size, size));
+            } else if (cursorOverlay.getParent() != parent) {
+                if (cursorOverlay.getParent() != null) ((ViewGroup) cursorOverlay.getParent()).removeView(cursorOverlay);
+                parent.addView(cursorOverlay);
+            }
+            cursorOverlay.setVisibility(View.VISIBLE);
+            updateCursorOverlayPosition();
+        });
+    }
+
+    private void hideCursorOverlay() {
+        AppData.uiHandler.post(() -> {
+            if (cursorOverlay != null) cursorOverlay.setVisibility(View.GONE);
+        });
+    }
+
+    // 光标定位：textureView 在 textureViewLayout 内可能居中偏移，需加上其 left/top
+    private void updateCursorOverlayPosition() {
+        if (cursorOverlay == null || cursorOverlay.getVisibility() != View.VISIBLE) return;
+        cursorOverlay.setX(textureView.getLeft() + cursorX * textureView.getWidth() - cursorOverlay.getWidth() / 2f);
+        cursorOverlay.setY(textureView.getTop() + cursorY * textureView.getHeight() - cursorOverlay.getHeight() / 2f);
+    }
+
+    // 鼠标手势状态机(UI线程)：单指拖动=光标悬停，快速点按=左键，双指点按=右键，双指滑动=滚轮
+    private void handleMouseEvent(MotionEvent event) {
+        int action = event.getActionMasked();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN: {
+                activePointers = 1;
+                moved = false;
+                suppressGesture = false;
+                scrollMode = false;
+                twoFingerTap = false;
+                singleDownTime = event.getEventTime();
+                singleDownX = event.getX();
+                singleDownY = event.getY();
+                lastX = singleDownX;
+                lastY = singleDownY;
+                pendingDx = 0f;
+                pendingDy = 0f;
+                break;
+            }
+            case MotionEvent.ACTION_POINTER_DOWN: {
+                // 第二指按下：进入滚动模式，取消单击意图
+                if (activePointers == 1) {
+                    activePointers = 2;
+                    scrollMode = true;
+                    twoFingerTap = true;
+                    pendingDx = 0f;
+                    pendingDy = 0f;
+                    scrollLastY = (event.getY(0) + event.getY(1)) / 2f;
+                }
+                break;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                if (scrollMode && activePointers == 2) {
+                    float y = (event.getY(0) + event.getY(1)) / 2f;
+                    float dy = y - scrollLastY;
+                    scrollLastY = y;
+                    // 超过阈值才算滚动，避免点击抖动误触发
+                    if (Math.abs(dy) > mouseTapThreshold * 0.5f) {
+                        twoFingerTap = false;
+                        handleAction("writeByteBuffer", ControlPacket.createMouseEvent(MotionEvent.ACTION_SCROLL, 0f, 0f, -dy * 0.01f), 0);
+                    }
+                } else if (activePointers == 1 && !suppressGesture) {
+                    float dx = event.getX() - lastX;
+                    float dy = event.getY() - lastY;
+                    lastX = event.getX();
+                    lastY = event.getY();
+                    pendingDx += dx / surfaceSize.first;
+                    pendingDy += dy / surfaceSize.second;
+                    // 超过按下点阈值视为光标拖动：一次性补发累计位移后逐帧增量发送(1:1触控板手感)
+                    float total = Math.abs(event.getX() - singleDownX) + Math.abs(event.getY() - singleDownY);
+                    if (!moved && total > mouseTapThreshold) moved = true;
+                    if (moved && (pendingDx != 0f || pendingDy != 0f)) {
+                        cursorX += pendingDx;
+                        cursorY += pendingDy;
+                        // 与服务端一致收敛到画面范围内，防止持续边缘拖动导致光标覆盖层偏出画面
+                        cursorX = Math.max(0f, Math.min(1f, cursorX));
+                        cursorY = Math.max(0f, Math.min(1f, cursorY));
+                        handleAction("writeByteBuffer", ControlPacket.createMouseEvent(MotionEvent.ACTION_HOVER_MOVE, pendingDx, pendingDy, 0f), 0);
+                        pendingDx = 0f;
+                        pendingDy = 0f;
+                        updateCursorOverlayPosition();
+                    }
+                }
+                break;
+            }
+            case MotionEvent.ACTION_POINTER_UP: {
+                // 手指从2→1：双指无位移即为右键；剩余单指手势不再响应
+                if (activePointers == 2) {
+                    if (twoFingerTap) sendMouseClick(2);
+                    activePointers = 1;
+                    scrollMode = false;
+                    suppressGesture = true;
+                }
+                break;
+            }
+            case MotionEvent.ACTION_UP: {
+                if (activePointers == 1 && !suppressGesture) {
+                    long dt = event.getEventTime() - singleDownTime;
+                    // 快速点按且未移动 = 左键
+                    if (!moved && dt < 300) sendMouseClick(1);
+                }
+                activePointers = 0;
+                break;
+            }
+        }
+    }
+
+    private void sendMouseClick(int button) {
+        handleAction("writeByteBuffer", ControlPacket.createMouseEvent(MotionEvent.ACTION_DOWN, 0f, 0f, button), 0);
+        handleAction("writeByteBuffer", ControlPacket.createMouseEvent(MotionEvent.ACTION_UP, 0f, 0f, button), 0);
+    }
+
     // 剪切板
     private String nowClipboardText = "";
 
@@ -428,6 +626,211 @@ public class ClientController implements TextureView.SurfaceTextureListener {
         Matcher matcher = Pattern.compile("volume is (\\d+) in range \\[(\\d+)\\.\\.(\\d+)\\]").matcher(output);
         if (!matcher.find()) return null;
         return new Pair<>(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(3)));
+    }
+
+    // ===== 远程录屏 =====
+    private void toggleRecord() throws Exception {
+        ClientPlayer player = Client.getClientPlayer(device.uuid);
+        if (player == null) return;
+        if (player.isRecording()) player.stopRecord();
+        else {
+            player.startRecord();
+            // 让服务端立即输出关键帧，录屏首帧不必等最长10秒的I帧周期
+            clientStream.writeToMain(ControlPacket.createSyncFrameEvent());
+            PublicTools.logToast("controller", AppData.applicationContext.getString(R.string.toast_record_start), true);
+        }
+    }
+
+    public boolean isRecording() {
+        ClientPlayer player = Client.getClientPlayer(device.uuid);
+        return player != null && player.isRecording();
+    }
+
+    // 保存远程截图(服务端 screencap 回传的 PNG)
+    private void saveScreenshot(ByteBuffer pngBuffer) {
+        int size = pngBuffer.remaining();
+        if (size == 0) {
+            PublicTools.logToast("controller", AppData.applicationContext.getString(R.string.toast_screenshot_failed), true);
+            return;
+        }
+        byte[] png = new byte[size];
+        pngBuffer.get(png);
+        try {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(png, 0, png.length);
+            if (bitmap == null) throw new Exception("decode fail");
+            String name = "easycontrol_" + System.currentTimeMillis() + ".png";
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+                values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+                values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Easycontrol");
+                Uri uri = AppData.applicationContext.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                if (uri == null) throw new Exception("insert fail");
+                try (OutputStream outputStream = AppData.applicationContext.getContentResolver().openOutputStream(uri)) {
+                    if (outputStream == null) throw new Exception("open fail");
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+                }
+            } else {
+                File dir = AppData.applicationContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                File file = new File(dir, name);
+                try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+                }
+                MediaScannerConnection.scanFile(AppData.applicationContext, new String[]{file.getAbsolutePath()}, new String[]{"image/png"}, null);
+            }
+            bitmap.recycle();
+            PublicTools.logToast("controller", AppData.applicationContext.getString(R.string.toast_screenshot_saved), true);
+        } catch (Exception e) {
+            PublicTools.logToast("controller", AppData.applicationContext.getString(R.string.toast_screenshot_failed), true);
+        }
+    }
+
+    // 被控机状态数据（getDeviceStatus 解析填充）
+    public static class DeviceStatus {
+        public int batteryLevel = -1;
+        public int batteryScale = 100;
+        public int batteryStatus = 0;
+        public float temperature = 0;   // 十分之一摄氏度，如 365 = 36.5℃
+        public float voltage = 0;       // 毫伏
+        public String batteryTech = "";
+        public String model = "";
+        public String manufacturer = "";
+        public String release = "";
+        public String sdk = "";
+        public String kernel = "";
+        public long ramKb = 0;
+        public long storageTotalKb = 0;
+        public long storageUsedKb = 0;
+        public int brightness = -1;     // 0~255，-1 未知
+        public boolean brightnessAuto = false;
+        public long uptimeSec = 0;
+        public String resolution = "";
+    }
+
+    // 读取被控机状态：一次shell按标记分段读电池/属性/内核/内存/存储/亮度/运行时长，分辨率用已有videoSize
+    public DeviceStatus getDeviceStatus() throws Exception {
+        String output = clientStream.runShell(
+                "echo '<<B>>'; dumpsys battery;" +
+                        "echo '<<P>>'; getprop ro.product.model; getprop ro.product.manufacturer; getprop ro.product.brand; getprop ro.build.version.release; getprop ro.build.version.sdk;" +
+                        "echo '<<K>>'; uname -r;" +
+                        "echo '<<M>>'; cat /proc/meminfo;" +
+                        "echo '<<D>>'; df /data;" +
+                        "echo '<<L>>'; settings get system screen_brightness; settings get system screen_brightness_mode;" +
+                        "echo '<<T>>'; cat /proc/uptime");
+        DeviceStatus s = new DeviceStatus();
+        int b = output.indexOf("<<B>>"), p = output.indexOf("<<P>>"), k = output.indexOf("<<K>>"),
+                m = output.indexOf("<<M>>"), d = output.indexOf("<<D>>"), l = output.indexOf("<<L>>"), t = output.indexOf("<<T>>");
+        if (b >= 0 && p > b) parseBattery(s, output.substring(b + 5, p));
+        if (p >= 0 && k > p) parseProps(s, output.substring(p + 5, k));
+        if (k >= 0 && m > k) s.kernel = output.substring(k + 5, m).trim();
+        if (m >= 0 && d > m) parseMem(s, output.substring(m + 5, d));
+        if (d >= 0 && l > d) parseDf(s, output.substring(d + 5, l));
+        if (l >= 0 && t > l) parseBrightness(s, output.substring(l + 5, t));
+        if (t >= 0) parseUptime(s, output.substring(t + 5));
+        if (videoSize != null) s.resolution = videoSize.first + "×" + videoSize.second;
+        return s;
+    }
+
+    private void parseBattery(DeviceStatus s, String section) {
+        Matcher matcher = Pattern.compile("\\b(level|scale|status|temperature|voltage|technology):\\s*(\\S+)").matcher(section);
+        while (matcher.find()) {
+            String key = matcher.group(1);
+            String value = matcher.group(2).trim();
+            try {
+                switch (key) {
+                    case "level":
+                        s.batteryLevel = Integer.parseInt(value);
+                        break;
+                    case "scale":
+                        s.batteryScale = Integer.parseInt(value);
+                        break;
+                    case "status":
+                        s.batteryStatus = Integer.parseInt(value);
+                        break;
+                    case "temperature":
+                        s.temperature = Float.parseFloat(value);
+                        break;
+                    case "voltage":
+                        s.voltage = Float.parseFloat(value);
+                        break;
+                    case "technology":
+                        s.batteryTech = value;
+                        break;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+    }
+
+    // 顺序取前5行非空 getprop 输出：model / manufacturer / brand / release / sdk
+    private void parseProps(DeviceStatus s, String section) {
+        String[] values = new String[5];
+        int n = 0;
+        for (String line : section.split("\n")) {
+            String v = line.trim();
+            if (!v.isEmpty() && n < values.length) values[n++] = v;
+        }
+        if (n > 0) s.model = values[0];
+        if (n > 1) s.manufacturer = values[1];
+        if (n > 3) s.release = values[3];
+        if (n > 4) s.sdk = values[4];
+    }
+
+    private void parseMem(DeviceStatus s, String section) {
+        Matcher matcher = Pattern.compile("MemTotal:\\s*(\\d+)").matcher(section);
+        if (matcher.find()) {
+            try {
+                s.ramKb = Long.parseLong(matcher.group(1));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+    }
+
+    private void parseDf(DeviceStatus s, String section) {
+        for (String line : section.split("\n")) {
+            String t = line.trim();
+            if (t.endsWith("/data")) {
+                String[] p = t.split("\\s+");
+                if (p.length >= 3) {
+                    try {
+                        s.storageTotalKb = Long.parseLong(p[1]);
+                        s.storageUsedKb = Long.parseLong(p[2]);
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    private void parseBrightness(DeviceStatus s, String section) {
+        String v0 = "", v1 = "";
+        for (String line : section.split("\n")) {
+            String v = line.trim();
+            if (v.isEmpty()) continue;
+            if (v0.isEmpty()) v0 = v;
+            else {
+                v1 = v;
+                break;
+            }
+        }
+        if (!v0.isEmpty() && !"null".equals(v0)) {
+            try {
+                s.brightness = Integer.parseInt(v0);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        s.brightnessAuto = "1".equals(v1);
+    }
+
+    private void parseUptime(DeviceStatus s, String section) {
+        String first = section.trim();
+        int sp = first.indexOf(' ');
+        if (sp > 0) first = first.substring(0, sp);
+        try {
+            s.uptimeSec = (long) Double.parseDouble(first.trim());
+        } catch (NumberFormatException ignored) {
+        }
     }
 
     @Override

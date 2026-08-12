@@ -209,6 +209,33 @@ public final class Server {
                     case 10:
                         Device.changeVolume(mainInputStream.readInt());
                         break;
+                    case 11:
+                        ControlPacket.handleMouseEvent();
+                        break;
+                    case 12:
+                        // 截图请求：独立线程执行截图，避免阻塞控制流；成功回传 [5][size][PNG]，失败回传 [5][0]
+                        // 首选截 shadow display(与投屏画面一致，息屏/折叠不黑)，失败再回退 screencap
+                        new Thread(() -> {
+                            try {
+                                byte[] png = SurfaceControl.captureDisplayPng(VideoEncode.getCaptureDisplay(), Device.videoSize.first, Device.videoSize.second);
+                                // 多屏折叠设备上 screencap 默认会选到息屏的那块(黑图)，用默认显示的物理ID指定 -d
+                                long captureId = SurfaceControl.getDefaultDisplayPhysicalId();
+                                if (png == null && captureId >= 0)
+                                    png = Device.execReadOutputBytes("screencap -d " + captureId + " -p");
+                                if (png == null) png = Device.execReadOutputBytes("screencap -p");
+                                ControlPacket.sendScreenshotEvent(png);
+                            } catch (Exception ignored) {
+                                try {
+                                    ControlPacket.sendScreenshotEvent(new byte[0]);
+                                } catch (Exception ignored2) {
+                                }
+                            }
+                        }).start();
+                        break;
+                    case 13:
+                        // 请求关键帧(录屏开始)：让编码器尽快输出I帧，缩短录屏首关键帧等待
+                        VideoEncode.requestSyncFrame();
+                        break;
                 }
             }
         } catch (Exception e) {

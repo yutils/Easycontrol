@@ -128,6 +128,40 @@
     <string name="toast_float_per">需要悬浮窗权限</string>
     <string name="toast_home_single_app">桌面不支持单应用投屏</string>
     <string name="toast_volume_not_support">设备系统过低，不支持音量调节</string>
+    <string name="toast_screenshot_saved">截图已保存到相册</string>
+    <string name="toast_screenshot_failed">截图保存失败</string>
+    <string name="toast_record_start">开始录屏</string>
+    <string name="toast_record_saved">录屏已保存到相册</string>
+    <string name="toast_record_unsupported">当前视频编码或系统版本不支持录屏</string>
+    <string name="toast_status_failed">获取设备状态失败</string>
+
+    <!-- 设备状态面板 -->
+    <string name="dialog_status_title">设备状态</string>
+    <string name="dialog_status_model">型号</string>
+    <string name="dialog_status_manufacturer">制造厂商</string>
+    <string name="dialog_status_android">系统版本</string>
+    <string name="dialog_status_kernel">内核版本</string>
+    <string name="dialog_status_resolution">分辨率</string>
+    <string name="dialog_status_ram">内存</string>
+    <string name="dialog_status_storage">存储</string>
+    <string name="dialog_status_storage_fmt">已用 %1$s，共 %2$s</string>
+    <string name="dialog_status_brightness">亮度</string>
+    <string name="dialog_status_brightness_auto">自动</string>
+    <string name="dialog_status_uptime">运行时长</string>
+    <string name="dialog_status_uptime_fmt_dh">%1$d天 %2$d小时</string>
+    <string name="dialog_status_uptime_fmt_hm">%1$d小时 %2$d分</string>
+    <string name="dialog_status_uptime_fmt_m">%1$d分钟</string>
+    <string name="dialog_status_connection">连接方式</string>
+    <string name="dialog_status_conn_wireless">无线</string>
+    <string name="dialog_status_conn_usb">USB 有线</string>
+    <string name="dialog_status_encoding">编码 / 帧率</string>
+    <string name="dialog_status_charging">充电中</string>
+    <string name="dialog_status_discharging">放电中</string>
+    <string name="dialog_status_not_charging">未充电</string>
+    <string name="dialog_status_full">已充满</string>
+    <string name="dialog_status_unknown">未知</string>
+    <string name="dialog_status_refresh">刷新</string>
+    <string name="dialog_status_close">关闭</string>
 
     <!-- 重连对话框 -->
     <string name="reconnect_countdown">设备「%1$s」连接异常，%2$d秒后自动重连…</string>

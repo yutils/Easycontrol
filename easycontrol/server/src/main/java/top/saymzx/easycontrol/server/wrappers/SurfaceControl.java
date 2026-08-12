@@ -195,4 +195,150 @@ public final class SurfaceControl {
         }
     }
 
+    // ===== 截图：SurfaceControl.captureDisplay(息屏/折叠时screencap会拍到黑屏，
+    // 改截shadow display的合成输出，与投屏画面一致) =====
+    private static final int FLAG_CAPTURE_CONTENT = 0x00000004;
+    private static Method captureDisplayMethod = null;
+    private static boolean captureNeedsTransaction = false;
+    private static Method shbGetHardwareBuffer = null;
+    private static Method shbGetColorSpace = null;
+    private static Method setDisplayFlagsMethod = null;
+    private static Method transactionSetDisplayFlags = null;
+
+    private static void loadCaptureMethods() {
+        if (captureDisplayMethod != null) return;
+        try {
+            setDisplayFlagsMethod = CLASS.getMethod("setDisplayFlags", IBinder.class, int.class, int.class);
+        } catch (Exception ignored) {
+        }
+        if (transactionClass != null) {
+            try {
+                transactionSetDisplayFlags = transactionClass.getMethod("setDisplayFlags", IBinder.class, int.class, int.class);
+            } catch (Exception ignored) {
+            }
+        }
+        // 各版本 captureDisplay 签名不同：API28无usage/rotation，API34新增transactionId，
+        // API35(Android15)静态方法移除，改为第一个参数传 Transaction 对象
+        Class<?>[][] signatures = new Class<?>[][]{
+                {IBinder.class, int.class, int.class, int.class, Rect.class, int.class, boolean.class},
+                {IBinder.class, int.class, int.class, int.class, long.class, Rect.class, int.class, boolean.class, int.class},
+                {IBinder.class, int.class, int.class, int.class, long.class, Rect.class, int.class, boolean.class, int.class, long.class},
+        };
+        for (Class<?>[] signature : signatures) {
+            try {
+                captureDisplayMethod = CLASS.getMethod("captureDisplay", signature);
+                break;
+            } catch (NoSuchMethodException ignored) {
+            }
+        }
+        if (captureDisplayMethod == null && transactionClass != null) {
+            // Android 15: captureDisplay(Transaction, IBinder, int, int, int, long, Rect, int, boolean, int, long)
+            try {
+                captureDisplayMethod = CLASS.getMethod("captureDisplay", transactionClass, IBinder.class, int.class, int.class, int.class, long.class, Rect.class, int.class, boolean.class, int.class, long.class);
+                captureNeedsTransaction = true;
+            } catch (NoSuchMethodException ignored) {
+            }
+        }
+        if (captureDisplayMethod == null) return;
+        try {
+            Class<?> shbClass = Class.forName("android.view.SurfaceControl$ScreenshotHardwareBuffer");
+            shbGetHardwareBuffer = shbClass.getMethod("getHardwareBuffer");
+            shbGetColorSpace = shbClass.getMethod("getColorSpace");
+        } catch (Exception ignored) {
+        }
+    }
+
+    // 虚拟显示默认不可被 captureDisplay 截取，先置上 CAPTURE_CONTENT 标志(尽力而为)
+    private static void markDisplayCapturable(IBinder displayToken) {
+        try {
+            if (useTransaction && transactionSetDisplayFlags != null) {
+                Object tx = transactionClass.getConstructor().newInstance();
+                transactionSetDisplayFlags.invoke(tx, displayToken, FLAG_CAPTURE_CONTENT, FLAG_CAPTURE_CONTENT);
+                transactionApply.invoke(tx);
+                transactionClose.invoke(tx);
+                return;
+            }
+            if (setDisplayFlagsMethod != null) {
+                setDisplayFlagsMethod.invoke(null, displayToken, FLAG_CAPTURE_CONTENT, FLAG_CAPTURE_CONTENT);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    /**
+     * 截取指定显示令牌(投屏shadow display)的当前画面为PNG。返回null表示失败，调用方回退screencap。
+     */
+    public static byte[] captureDisplayPng(IBinder displayToken, int width, int height) {
+        if (displayToken == null) return null;
+        loadCaptureMethods();
+        if (captureDisplayMethod == null || shbGetHardwareBuffer == null || shbGetColorSpace == null) return null;
+        markDisplayCapturable(displayToken);
+        Object transaction = null;
+        try {
+            int usage = 1 << 16; // USAGE_GPU_SAMPLED_IMAGE
+            Object shb;
+            int paramCount = captureDisplayMethod.getParameterTypes().length;
+            if (captureNeedsTransaction) {
+                // Android 15: 传 Transaction 对象
+                transaction = transactionClass.getConstructor().newInstance();
+                shb = captureDisplayMethod.invoke(null, transaction, displayToken, width, height, 1, (long) usage, (Rect) null, 1, true, 0, 0L);
+            } else if (paramCount == 7) {
+                shb = captureDisplayMethod.invoke(null, displayToken, width, height, 1, (Rect) null, 1, true);
+            } else if (paramCount == 9) {
+                shb = captureDisplayMethod.invoke(null, displayToken, width, height, 1, (long) usage, (Rect) null, 1, true, 0);
+            } else {
+                shb = captureDisplayMethod.invoke(null, displayToken, width, height, 1, (long) usage, (Rect) null, 1, true, 0, 0L);
+            }
+            if (shb == null) return null;
+            android.hardware.HardwareBuffer hardwareBuffer = (android.hardware.HardwareBuffer) shbGetHardwareBuffer.invoke(shb);
+            android.graphics.ColorSpace colorSpace = (android.graphics.ColorSpace) shbGetColorSpace.invoke(shb);
+            if (hardwareBuffer == null) return null;
+            try {
+                android.graphics.Bitmap bitmap = android.graphics.Bitmap.wrapHardwareBuffer(hardwareBuffer, colorSpace);
+                if (bitmap == null) return null;
+                // wrap的bitmap与hardware buffer共享内存，需拷贝为独立可变位图再压缩
+                android.graphics.Bitmap copy = bitmap.copy(android.graphics.Bitmap.Config.ARGB_8888, false);
+                bitmap.recycle();
+                if (copy == null) return null;
+                java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
+                copy.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output);
+                copy.recycle();
+                return output.toByteArray();
+            } finally {
+                hardwareBuffer.close();
+            }
+        } catch (Throwable ignored) {
+            return null;
+        } finally {
+            if (transaction != null) {
+                try {
+                    transactionClose.invoke(transaction);
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    // 截图用：返回默认显示(displayId 0)对应的物理显示ID。
+    // DisplayInfo.uniqueId 形如 "local:4630946592180194435"，取冒号后的数字即是 screencap -d 需要的物理ID。
+    // 多屏折叠设备上 screencap 默认会选到息屏的那块(黑图)，必须显式指定 -d。
+    // 返回 -1 表示无法确定(单屏设备无需指定，走默认路径)。
+    public static long getDefaultDisplayPhysicalId() {
+        try {
+            Object manager = Class.forName("android.hardware.display.DisplayManagerGlobal")
+                    .getMethod("getInstance").invoke(null);
+            Object info = manager.getClass().getMethod("getDisplayInfo", int.class).invoke(manager, 0);
+            if (info == null) return -1;
+            java.lang.reflect.Field uniqueIdField = info.getClass().getDeclaredField("uniqueId");
+            uniqueIdField.setAccessible(true);
+            String uniqueId = (String) uniqueIdField.get(info);
+            if (uniqueId == null) return -1;
+            int idx = uniqueId.lastIndexOf(':');
+            String num = (idx >= 0) ? uniqueId.substring(idx + 1) : uniqueId;
+            return Long.parseLong(num);
+        } catch (Throwable ignored) {
+            return -1;
+        }
+    }
+
 }

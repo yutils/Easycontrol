@@ -19,13 +19,13 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <LinearLayout
+        <!-- FrameLayout 以便绝对定位虚拟鼠标光标覆盖层；gravity=center 保持画面居中 -->
+        <FrameLayout
             android:id="@+id/texture_view_layout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal" />
+            android:gravity="center" />
 
         <LinearLayout
             android:id="@+id/nav_bar"
@@ -215,14 +215,47 @@
             android:orientation="horizontal">
 
             <ImageView
-                android:id="@+id/button_volume"
+                android:id="@+id/button_mouse"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/background_client_button"
                 android:focusable="false"
                 android:padding="10dp"
+                android:src="@drawable/mouse"
+                app:tint="@color/clientNavIcon" />
+
+            <ImageView
+                android:id="@+id/button_screenshot"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/background_client_button"
+                android:focusable="false"
+                android:padding="10dp"
+                android:src="@drawable/screenshot"
+                app:tint="@color/clientNavIcon" />
+
+            <ImageView
+                android:id="@+id/button_volume"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/background_client_button"
+                android:focusable="false"
+                android:padding="8dp"
                 android:src="@drawable/volume_up"
+                app:tint="@color/clientNavIcon" />
+
+            <ImageView
+                android:id="@+id/button_status"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/background_client_button"
+                android:focusable="false"
+                android:padding="10dp"
+                android:src="@drawable/status"
                 app:tint="@color/clientNavIcon" />
         </LinearLayout>
 

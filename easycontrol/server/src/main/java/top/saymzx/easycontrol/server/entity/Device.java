@@ -17,7 +17,9 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -249,6 +251,46 @@ public final class Device {
         injectEvent(event2);
     }
 
+    // ===== 虚拟鼠标(触控板式相对移动) =====
+    // 光标位置由服务端累计：客户端只发归一化位移增量，首用初始化为屏幕中心
+    private static float mouseX = -1;
+    private static float mouseY = -1;
+    private static long mouseDownTime = 0;
+
+    // action 复用 MotionEvent(0=DOWN,1=UP,7=HOVER_MOVE,8=SCROLL)；dx/dy 为归一化位移，data 为 buttonState(1左/2右)或滚动量
+    public static void mouseEvent(int action, float dx, float dy, float data) {
+        if (displayInfo == null) return;
+        if (mouseX < 0) {
+            mouseX = displayInfo.width / 2f;
+            mouseY = displayInfo.height / 2f;
+        }
+        if (action == MotionEvent.ACTION_HOVER_MOVE) {
+            mouseX += dx * displayInfo.width;
+            mouseY += dy * displayInfo.height;
+            if (mouseX < 0) mouseX = 0;
+            else if (mouseX >= displayInfo.width) mouseX = displayInfo.width - 1;
+            if (mouseY < 0) mouseY = 0;
+            else if (mouseY >= displayInfo.height) mouseY = displayInfo.height - 1;
+        } else if (action == MotionEvent.ACTION_DOWN) {
+            mouseDownTime = SystemClock.uptimeMillis();
+        }
+        long now = SystemClock.uptimeMillis();
+        long downTime = (action == MotionEvent.ACTION_UP) ? mouseDownTime : now;
+        // 单指针鼠标事件
+        MotionEvent.PointerProperties[] properties = new MotionEvent.PointerProperties[1];
+        properties[0] = new MotionEvent.PointerProperties();
+        properties[0].id = 0;
+        properties[0].toolType = MotionEvent.TOOL_TYPE_MOUSE;
+        MotionEvent.PointerCoords[] coords = new MotionEvent.PointerCoords[1];
+        coords[0] = new MotionEvent.PointerCoords();
+        coords[0].x = mouseX;
+        coords[0].y = mouseY;
+        if (action == MotionEvent.ACTION_SCROLL) coords[0].setAxisValue(MotionEvent.AXIS_VSCROLL, data);
+        int buttonState = (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP) ? (int) data : 0;
+        MotionEvent event = MotionEvent.obtain(downTime, now, action, 1, properties, coords, 0, buttonState, 1f, 1f, 0, 0, InputDevice.SOURCE_MOUSE, 0);
+        injectEvent(event);
+    }
+
     private static void injectEvent(InputEvent inputEvent) {
         try {
             if (displayId != Display.DEFAULT_DISPLAY)
@@ -309,12 +351,35 @@ public final class Device {
         Process process = new ProcessBuilder().command("sh", "-c", cmd).start();
         StringBuilder builder = new StringBuilder();
         String line;
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            while ((line = bufferedReader.readLine()) != null) builder.append(line).append("\n");
+        try {
+            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                while ((line = bufferedReader.readLine()) != null) builder.append(line).append("\n");
+            }
+            int exitCode = process.waitFor();
+            if (exitCode != 0) throw new IOException("命令执行错误" + cmd);
+            return builder.toString();
+        } finally {
+            // 读取失败或命令异常退出时兜底销毁子进程，避免孤儿进程/线程泄漏
+            process.destroy();
         }
-        int exitCode = process.waitFor();
-        if (exitCode != 0) throw new IOException("命令执行错误" + cmd);
-        return builder.toString();
+    }
+
+    // 读取命令原始输出(字节)，供二进制数据(如 screencap 的 PNG)使用
+    public static byte[] execReadOutputBytes(String cmd) throws IOException, InterruptedException {
+        Process process = new ProcessBuilder().command("sh", "-c", cmd).start();
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        int len;
+        try {
+            try (InputStream inputStream = process.getInputStream()) {
+                while ((len = inputStream.read(buffer)) != -1) output.write(buffer, 0, len);
+            }
+            int exitCode = process.waitFor();
+            if (exitCode != 0) throw new IOException("命令执行错误" + cmd);
+            return output.toByteArray();
+        } finally {
+            process.destroy();
+        }
     }
 
     // 非侵入式防息屏：发送用户活动信号，不修改任何系统设置

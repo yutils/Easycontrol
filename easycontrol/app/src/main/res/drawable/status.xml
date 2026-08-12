@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 设备状态图标：电池 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M3,7h16a2,2 0 0,1 2,2v6a2,2 0 0,1 -2,2H3a2,2 0 0,1 -2,-2V9a2,2 0 0,1 2,-2zM20,10v4a2,2 0 0,0 2,-2a2,2 0 0,0 -2,-2zM5,10a1,1 0 0,0 -1,1v2a1,1 0 0,0 2,0v-2a1,1 0 0,0 -1,-1z" />
+</vector>

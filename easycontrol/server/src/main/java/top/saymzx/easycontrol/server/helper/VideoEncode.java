@@ -8,6 +8,7 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.system.ErrnoException;
 import android.view.Surface;
@@ -101,19 +102,33 @@ public final class VideoEncode {
         }
     }
 
+    // 客户端开始录屏时请求立即输出关键帧，避免等最长10秒的I帧周期；部分编码器在
+    // 开启INTRA_REFRESH时忽略该请求，客户端也有"等首关键帧"的兜底，此处尽力而为
+    public static void requestSyncFrame() {
+        try {
+            Bundle params = new Bundle();
+            params.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
+            encedec.setParameters(params);
+        } catch (Exception ignored) {
+        }
+    }
+
+    // 供截图使用：返回投屏shadow display令牌，captureDisplay可截其合成输出(息屏/折叠也能拿到画面)
+    public static IBinder getCaptureDisplay() {
+        return display;
+    }
+
     private static final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
 
     public static void encodeOut() throws IOException {
-        try {
-            // 找到已完成的输出缓冲区
-            int outIndex;
-            do outIndex = encedec.dequeueOutputBuffer(bufferInfo, -1); while (outIndex < 0);
-            ByteBuffer buffer = encedec.getOutputBuffer(outIndex);
-            if (buffer == null) return;
-            ControlPacket.sendVideoEvent(bufferInfo.presentationTimeUs, buffer);
-            encedec.releaseOutputBuffer(outIndex, false);
-        } catch (IllegalStateException ignored) {
-        }
+        // 编解码器出错（IllegalStateException/CodecException）不再吞掉，
+        // 向上抛由 executeVideoOut 统一 errorClose 拆会话；否则外层循环会以 100% CPU 空转且会话永不拆除
+        int outIndex;
+        do outIndex = encedec.dequeueOutputBuffer(bufferInfo, -1); while (outIndex < 0);
+        ByteBuffer buffer = encedec.getOutputBuffer(outIndex);
+        if (buffer == null) return;
+        ControlPacket.sendVideoEvent(bufferInfo.presentationTimeUs, buffer);
+        encedec.releaseOutputBuffer(outIndex, false);
     }
 
     public static void release() {

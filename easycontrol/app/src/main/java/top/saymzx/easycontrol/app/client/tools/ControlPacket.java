@@ -109,4 +109,26 @@ public final class ControlPacket {
         return byteBuffer;
     }
 
+    // 虚拟鼠标事件(触控板式相对移动)：dx/dy 为归一化位移，data 为 buttonState(1左/2右)或滚动量
+    public static ByteBuffer createMouseEvent(int action, float dx, float dy, float data) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(14);
+        byteBuffer.put((byte) 11);
+        byteBuffer.put((byte) action);
+        byteBuffer.putFloat(dx);
+        byteBuffer.putFloat(dy);
+        byteBuffer.putFloat(data);
+        byteBuffer.flip();
+        return byteBuffer;
+    }
+
+    // 截图请求事件
+    public static ByteBuffer createScreenshotEvent() {
+        return ByteBuffer.wrap(new byte[]{12});
+    }
+
+    // 请求关键帧事件(开始录屏时让服务端立即输出I帧，避免等最长10秒的关键帧周期)
+    public static ByteBuffer createSyncFrameEvent() {
+        return ByteBuffer.wrap(new byte[]{13});
+    }
+
 }

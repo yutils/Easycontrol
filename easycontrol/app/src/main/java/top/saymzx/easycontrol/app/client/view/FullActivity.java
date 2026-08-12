@@ -12,6 +12,8 @@ import android.text.InputType;
 import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,6 +38,7 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
     private ActivityFullBinding activityFullBinding;
     private boolean autoRotate;
     private boolean light = true;
+    private boolean mouse = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,8 +68,16 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
         // 按键监听
         setButtonListener();
         setKeyEvent();
-        // 更新textureView
-        activityFullBinding.textureViewLayout.addView(clientController.getTextureView(), 0);
+        // 更新textureView；双击“全屏”等竞态下 textureView 可能仍挂在旧父容器上，
+        // 先解除再添加，避免 “The specified child already has a parent” 崩溃
+        View textureView = clientController.getTextureView();
+        ViewParent oldParent = textureView.getParent();
+        if (oldParent instanceof ViewGroup) ((ViewGroup) oldParent).removeView(textureView);
+        activityFullBinding.textureViewLayout.addView(textureView, 0);
+        // 同步鼠标状态(切换回全屏时恢复图标与光标覆盖层)
+        mouse = clientController.isMouseMode();
+        activityFullBinding.buttonMouse.setImageTintList(ColorStateList.valueOf(getResources().getColor(mouse ? R.color.mouseActive : R.color.clientNavIcon)));
+        if (mouse) clientController.showCursorOverlay();
         activityFullBinding.textureViewLayout.post(this::updateMaxSize);
         // 页面自动旋转
         AppData.sensorManager.registerListener(this, AppData.sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
@@ -150,6 +161,21 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
             changeBarView();
         });
         activityFullBinding.buttonVolume.setOnClickListener(v -> changeVolumeBar());
+        // 虚拟鼠标：触控板式，开启后光标高亮
+        activityFullBinding.buttonMouse.setOnClickListener(v -> {
+            mouse = !mouse;
+            clientController.handleAction("toggleMouse", null, 0);
+            activityFullBinding.buttonMouse.setImageTintList(ColorStateList.valueOf(getResources().getColor(mouse ? R.color.mouseActive : R.color.clientNavIcon)));
+            changeBarView();
+        });
+        activityFullBinding.buttonScreenshot.setOnClickListener(v -> {
+            clientController.handleAction("screenshot", null, 0);
+            changeBarView();
+        });
+        activityFullBinding.buttonStatus.setOnClickListener(v -> {
+            showStatusDialog();
+            changeBarView();
+        });
         // 滑块两端图标：直接切静音/切最大
         activityFullBinding.imageVolumeMute.setOnClickListener(v -> setVolumeByIcon(0));
         activityFullBinding.imageVolumeMax.setOnClickListener(v -> setVolumeByIcon(100));
@@ -241,6 +267,26 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
         activityFullBinding.seekbarVolume.setProgress(volume);
         clientController.handleAction("setVolume", ControlPacket.createVolumeEvent(volume), 0);
         updateVolumeIcon(volume);
+    }
+
+    // 设备状态面板：后台读被控机状态后弹窗展示
+    private void showStatusDialog() {
+        new Thread(() -> {
+            ClientController.DeviceStatus status;
+            try {
+                status = clientController.getDeviceStatus();
+            } catch (Exception ignored) {
+                status = null;
+            }
+            final ClientController.DeviceStatus statusFinal = status;
+            runOnUiThread(() -> {
+                if (statusFinal == null) {
+                    PublicTools.logToast("FullActivity", getString(R.string.toast_status_failed), true);
+                    return;
+                }
+                DeviceStatusDialog.show(this, device, statusFinal, false, this::showStatusDialog);
+            });
+        }).start();
     }
 
     private int lastOrientation = -1;

@@ -20,13 +20,13 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <LinearLayout
+        <!-- FrameLayout 以便绝对定位虚拟鼠标光标覆盖层；gravity=center 保持画面居中 -->
+        <FrameLayout
             android:id="@+id/texture_view_layout"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal" />
+            android:gravity="center" />
 
         <LinearLayout
             android:id="@+id/nav_bar"
@@ -206,6 +206,100 @@
                 android:focusable="false"
                 android:padding="10dp"
                 android:src="@drawable/lightbulb_off"
+                app:tint="@color/clientNavIcon" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="168dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/button_mouse"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/background_client_button"
+                android:focusable="false"
+                android:padding="10dp"
+                android:src="@drawable/mouse"
+                app:tint="@color/clientNavIcon" />
+
+            <ImageView
+                android:id="@+id/button_screenshot"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/background_client_button"
+                android:focusable="false"
+                android:padding="10dp"
+                android:src="@drawable/screenshot"
+                app:tint="@color/clientNavIcon" />
+
+            <ImageView
+                android:id="@+id/button_volume"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/background_client_button"
+                android:focusable="false"
+                android:padding="8dp"
+                android:src="@drawable/volume_up"
+                app:tint="@color/clientNavIcon" />
+
+            <ImageView
+                android:id="@+id/button_status"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/background_client_button"
+                android:focusable="false"
+                android:padding="10dp"
+                android:src="@drawable/status"
+                app:tint="@color/clientNavIcon" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/volume_bar"
+            android:layout_width="168dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/image_volume_mute"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:focusable="false"
+                android:padding="10dp"
+                android:src="@drawable/volume_off"
+                app:tint="@color/clientNavIcon" />
+
+            <SeekBar
+                android:id="@+id/seekbar_volume"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3"
+                android:maxHeight="4dp"
+                android:minHeight="4dp"
+                android:paddingStart="2dp"
+                android:paddingEnd="2dp"
+                android:progressTint="@color/onBlackBacnground"
+                android:splitTrack="false"
+                android:thumbTint="@color/onBlackBacnground" />
+
+            <ImageView
+                android:id="@+id/image_volume_max"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:focusable="false"
+                android:padding="10dp"
+                android:src="@drawable/volume_up"
                 app:tint="@color/clientNavIcon" />
         </LinearLayout>
 

@@ -1,6 +1,7 @@
 package top.saymzx.easycontrol.app.client.view;
 
 import android.annotation.SuppressLint;
+import android.content.res.ColorStateList;
 import android.graphics.Outline;
 import android.graphics.PixelFormat;
 import android.os.Build;
@@ -37,6 +38,7 @@ public class SmallView extends ViewOutlineProvider {
     private ClientController clientController;
     private volatile boolean isShow = false;
     private boolean light = true;
+    private boolean mouse = false;
 
     // 悬浮窗
     private final ModuleSmallViewBinding smallView = ModuleSmallViewBinding.inflate(LayoutInflater.from(AppData.applicationContext));
@@ -89,6 +91,10 @@ public class SmallView extends ViewOutlineProvider {
         // 显示
         AppData.windowManager.addView(smallView.getRoot(), smallViewParams);
         smallView.textureViewLayout.addView(clientController.getTextureView(), 0);
+        // 同步鼠标状态(小窗重开时恢复图标与光标覆盖层)
+        mouse = clientController.isMouseMode();
+        smallView.buttonMouse.setImageTintList(ColorStateList.valueOf(AppData.applicationContext.getColor(mouse ? R.color.mouseActive : R.color.clientNavIcon)));
+        if (mouse) clientController.showCursorOverlay();
         ViewTools.viewAnim(smallView.getRoot(), true, 0, PublicTools.dp2px(40f), null);
         isShow = true;
     }
@@ -196,6 +202,21 @@ public class SmallView extends ViewOutlineProvider {
             changeBarView();
         });
         smallView.buttonVolume.setOnClickListener(v -> changeVolumeBar());
+        // 虚拟鼠标：触控板式，开启后光标高亮
+        smallView.buttonMouse.setOnClickListener(v -> {
+            mouse = !mouse;
+            clientController.handleAction("toggleMouse", null, 0);
+            smallView.buttonMouse.setImageTintList(ColorStateList.valueOf(AppData.applicationContext.getColor(mouse ? R.color.mouseActive : R.color.clientNavIcon)));
+            changeBarView();
+        });
+        smallView.buttonScreenshot.setOnClickListener(v -> {
+            clientController.handleAction("screenshot", null, 0);
+            changeBarView();
+        });
+        smallView.buttonStatus.setOnClickListener(v -> {
+            showStatusDialog();
+            changeBarView();
+        });
         // 滑块两端图标：直接切静音/切最大
         smallView.imageVolumeMute.setOnClickListener(v -> setVolumeByIcon(0));
         smallView.imageVolumeMax.setOnClickListener(v -> setVolumeByIcon(100));
@@ -257,6 +278,27 @@ public class SmallView extends ViewOutlineProvider {
         smallView.seekbarVolume.setProgress(volume);
         clientController.handleAction("setVolume", ControlPacket.createVolumeEvent(volume), 0);
         updateVolumeIcon(volume);
+    }
+
+    // 设备状态面板：后台读被控机状态后弹窗展示(悬浮窗非Activity，用Application上下文)
+    private void showStatusDialog() {
+        new Thread(() -> {
+            ClientController.DeviceStatus status;
+            try {
+                status = clientController.getDeviceStatus();
+            } catch (Exception ignored) {
+                status = null;
+            }
+            final ClientController.DeviceStatus statusFinal = status;
+            AppData.uiHandler.post(() -> {
+                if (statusFinal == null) {
+                    PublicTools.logToast("SmallView", AppData.applicationContext.getString(R.string.toast_status_failed), true);
+                    return;
+                }
+                // 悬浮窗非 Activity，Application 上下文没有窗口 token，DeviceStatusDialog 内部会切 overlay 类型
+                DeviceStatusDialog.show(AppData.applicationContext, device, statusFinal, true, this::showStatusDialog);
+            });
+        }).start();
     }
 
     // 导航栏隐藏

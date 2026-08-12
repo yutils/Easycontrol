@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="utf-8"?><!-- 设备状态弹窗：白卡片，头部设备名/地址 + 电量区块 + 信息行 + 底部按钮 -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/background_cron"
+        android:elevation="@dimen/elevationLg"
+        android:orientation="vertical"
+        android:padding="@dimen/spaceLg">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/dialog_status_title"
+            android:textColor="@color/onCardBackgroundSecond"
+            android:textSize="@dimen/smallSmallFont" />
+
+        <TextView
+            android:id="@+id/status_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_horizontal"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:textColor="@color/primary"
+            android:textSize="@dimen/middleFont"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/status_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:textColor="@color/onCardBackgroundSecond"
+            android:textSize="@dimen/tinyFont" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/spaceMd"
+            android:layout_marginBottom="@dimen/spaceMd"
+            android:background="@color/cardDivider" />
+
+        <!-- 电量区块 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ProgressBar
+                android:id="@+id/status_battery_bar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="0dp"
+                android:layout_height="16dp"
+                android:layout_weight="1"
+                android:max="100"
+                android:progressDrawable="@drawable/dialog_battery_bar" />
+
+            <TextView
+                android:id="@+id/status_battery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spaceMd"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/middleFont"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/status_battery_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_horizontal"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:textColor="@color/onCardBackgroundSecond"
+            android:textSize="@dimen/tinyFont" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/spaceMd"
+            android:layout_marginBottom="@dimen/spaceSm"
+            android:background="@color/cardDivider" />
+
+        <!-- 信息行 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_status_model"
+                android:textColor="@color/onCardBackgroundSecond"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <TextView
+                android:id="@+id/status_model"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:gravity="end"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="—"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_status_manufacturer"
+                android:textColor="@color/onCardBackgroundSecond"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <TextView
+                android:id="@+id/status_manufacturer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:gravity="end"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="—"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_status_android"
+                android:textColor="@color/onCardBackgroundSecond"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <TextView
+                android:id="@+id/status_android"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:gravity="end"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="—"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_status_kernel"
+                android:textColor="@color/onCardBackgroundSecond"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <TextView
+                android:id="@+id/status_kernel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:gravity="end"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="—"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_status_resolution"
+                android:textColor="@color/onCardBackgroundSecond"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <TextView
+                android:id="@+id/status_resolution"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:gravity="end"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="—"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_status_ram"
+                android:textColor="@color/onCardBackgroundSecond"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <TextView
+                android:id="@+id/status_ram"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:gravity="end"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="—"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_status_storage"
+                android:textColor="@color/onCardBackgroundSecond"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <TextView
+                android:id="@+id/status_storage"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:gravity="end"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="—"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_status_brightness"
+                android:textColor="@color/onCardBackgroundSecond"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <TextView
+                android:id="@+id/status_brightness"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:gravity="end"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="—"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_status_uptime"
+                android:textColor="@color/onCardBackgroundSecond"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <TextView
+                android:id="@+id/status_uptime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:gravity="end"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="—"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_status_connection"
+                android:textColor="@color/onCardBackgroundSecond"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <TextView
+                android:id="@+id/status_connection"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:gravity="end"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="—"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spaceXs"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dialog_status_encoding"
+                android:textColor="@color/onCardBackgroundSecond"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <TextView
+                android:id="@+id/status_encoding"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:gravity="end"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="—"
+                android:textColor="@color/onCardBackground"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/spaceMd"
+            android:layout_marginBottom="@dimen/spaceMd"
+            android:background="@color/cardDivider" />
+
+        <!-- 按钮 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/status_refresh"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/background_button_primary"
+                android:text="@string/dialog_status_refresh"
+                android:textAllCaps="false"
+                android:textColor="@color/onButton"
+                android:textSize="@dimen/smallSmallFont" />
+
+            <Button
+                android:id="@+id/status_close"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="@dimen/spaceMd"
+                android:layout_weight="1"
+                android:background="@drawable/background_button_secondary"
+                android:text="@string/dialog_status_close"
+                android:textAllCaps="false"
+                android:textColor="@color/onSecondaryContainer"
+                android:textSize="@dimen/smallSmallFont" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

@@ -67,6 +67,29 @@ public final class ControlPacket {
         Device.touchEvent(action, x, y, pointerId, offsetTime);
     }
 
+    // 虚拟鼠标事件：[action:byte][dx:float][dy:float][data:float]
+    public static void handleMouseEvent() throws IOException {
+        int action = Server.mainInputStream.readByte();
+        float dx = Server.mainInputStream.readFloat();
+        float dy = Server.mainInputStream.readFloat();
+        float data = Server.mainInputStream.readFloat();
+        Device.mouseEvent(action, dx, dy, data);
+    }
+
+    // 截图数据回传：[5][size:int][PNG字节]，png 为空表示截图失败
+    public static void sendScreenshotEvent(byte[] png) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(5 + png.length);
+        byteBuffer.put((byte) 5);
+        byteBuffer.putInt(png.length);
+        byteBuffer.put(png);
+        byteBuffer.flip();
+        try {
+            Server.writeMain(byteBuffer);
+        } catch (IOException e) {
+            Server.errorClose(e);
+        }
+    }
+
     public static void handleKeyEvent() throws IOException {
         int keyCode = Server.mainInputStream.readInt();
         int meta = Server.mainInputStream.readInt();
@@ -75,6 +98,8 @@ public final class ControlPacket {
 
     public static void handleClipboardEvent() throws IOException {
         int size = Server.mainInputStream.readInt();
+        // 与发送端 5000 上限一致：防御恶意/损坏客户端发送超大长度导致 OOM
+        if (size < 0 || size > 5000) throw new IOException("invalid clipboard size");
         byte[] textBytes = new byte[size];
         Server.mainInputStream.readFully(textBytes);
         String text = new String(textBytes, StandardCharsets.UTF_8);

@@ -20,6 +20,15 @@ android {
         enabled = true
     }
 
+    signingConfigs {
+        release {
+            storeFile file('../doc/yujingtest.jks')
+            storePassword '123456'
+            keyAlias 'test'
+            keyPassword '123456'
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix ".debug" //包名后缀
@@ -28,6 +37,7 @@ android {
             debuggable true
         }
         release {
+            signingConfig signingConfigs.release
             buildConfigField "boolean", "ENABLE_DEBUG_FEATURE", "false"
             manifestPlaceholders = [app_name: "@string/app_name", app_icon: "@mipmap/ic_launcher", app_icon_round: "@mipmap/ic_launcher_round"]
             debuggable false
@@ -49,6 +59,21 @@ android {
     buildFeatures {
         buildConfig = true
     }
+    //绛惧悕
+    signingConfigs {
+        debug {
+            storeFile file("doc/yujingtest.jks")
+            storePassword "123456"
+            keyAlias "test"
+            keyPassword "123456"
+        }
+        release {
+            storeFile file("doc/yujingtest.jks")
+            storePassword "123456"
+            keyAlias "test"
+            keyPassword "123456"
+        }
+    }
 }
 androidComponents {
     onVariants(selector().all()) { variant ->
@@ -60,4 +85,11 @@ androidComponents {
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.kotlinx:appUpdate:0.0.5'
+}
+
+// 服务端 APK 由 :server:copyRelease 拷入 res/raw/easycontrol_server.jar。
+// 让 copyRelease 先于 preBuild 执行：preBuild 是各类资源/编译任务的共同上游，
+// 所有消费 res 目录的任务都会晚于 copyRelease，满足 Gradle 9 的显式依赖校验
+tasks.named("preBuild").configure {
+    dependsOn project(":server").tasks.named("copyRelease")
 }

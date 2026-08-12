@@ -128,6 +128,40 @@
     <string name="toast_float_per">Need floating window permission</string>
     <string name="toast_home_single_app">Cannot single-app cast the home screen</string>
     <string name="toast_volume_not_support">Device system too old, volume control not supported</string>
+    <string name="toast_screenshot_saved">Screenshot saved to gallery</string>
+    <string name="toast_screenshot_failed">Failed to save screenshot</string>
+    <string name="toast_record_start">Recording started</string>
+    <string name="toast_record_saved">Recording saved to gallery</string>
+    <string name="toast_record_unsupported">Recording unsupported for this codec or system version</string>
+    <string name="toast_status_failed">Failed to get device status</string>
+
+    <!-- Device status panel -->
+    <string name="dialog_status_title">Device status</string>
+    <string name="dialog_status_model">Model</string>
+    <string name="dialog_status_manufacturer">Manufacturer</string>
+    <string name="dialog_status_android">Android</string>
+    <string name="dialog_status_kernel">Kernel</string>
+    <string name="dialog_status_resolution">Resolution</string>
+    <string name="dialog_status_ram">RAM</string>
+    <string name="dialog_status_storage">Storage</string>
+    <string name="dialog_status_storage_fmt">%1$s used of %2$s</string>
+    <string name="dialog_status_brightness">Brightness</string>
+    <string name="dialog_status_brightness_auto">Auto</string>
+    <string name="dialog_status_uptime">Uptime</string>
+    <string name="dialog_status_uptime_fmt_dh">%1$dd %2$dh</string>
+    <string name="dialog_status_uptime_fmt_hm">%1$dh %2$dm</string>
+    <string name="dialog_status_uptime_fmt_m">%1$dm</string>
+    <string name="dialog_status_connection">Connection</string>
+    <string name="dialog_status_conn_wireless">Wireless</string>
+    <string name="dialog_status_conn_usb">USB</string>
+    <string name="dialog_status_encoding">Encoding</string>
+    <string name="dialog_status_charging">Charging</string>
+    <string name="dialog_status_discharging">Discharging</string>
+    <string name="dialog_status_not_charging">Not charging</string>
+    <string name="dialog_status_full">Full</string>
+    <string name="dialog_status_unknown">Unknown</string>
+    <string name="dialog_status_refresh">Refresh</string>
+    <string name="dialog_status_close">Close</string>
 
     <!-- Reconnect dialog -->
     <string name="reconnect_countdown">Device \"%1$s\" connection abnormal, reconnecting in %2$d seconds…</string>

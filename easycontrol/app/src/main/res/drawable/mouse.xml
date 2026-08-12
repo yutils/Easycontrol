@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 虚拟鼠标模式图标：鼠标指针 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M4.5,2.5l14.5,9.2l-6.5,1.9l3.3,6l-2.5,1.4l-3.3,-6l-5.5,4z" />
+</vector>
