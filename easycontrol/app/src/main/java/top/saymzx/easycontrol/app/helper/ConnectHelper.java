@@ -27,7 +27,7 @@ public class ConnectHelper {
         uiHandler.post(() -> {
             // 避免重复弹窗
             if (currentDialog != null && currentDialog.isShowing()) {
-                currentDialog.cancel();
+                ViewTools.dismiss(currentDialog);
             }
             Activity activity = AppData.mainActivity;
             if (activity == null || activity.isFinishing()) return;
@@ -54,7 +54,7 @@ public class ConnectHelper {
                 public void run() {
                     remaining[0]--;
                     if (remaining[0] <= 0) {
-                        if (dialog.isShowing()) dialog.cancel();
+                        ViewTools.dismiss(dialog);
                         Client.startDevice(device);
                     } else {
                         textView.setText(activity.getString(R.string.reconnect_countdown, deviceName, remaining[0]));
@@ -70,7 +70,7 @@ public class ConnectHelper {
 
             cancelButton.setOnClickListener(v -> {
                 countdownHandler.removeCallbacks(countdownRunnable);
-                dialog.cancel();
+                ViewTools.dismiss(dialog);
             });
             countdownHandler.postDelayed(countdownRunnable, 1000);
         });

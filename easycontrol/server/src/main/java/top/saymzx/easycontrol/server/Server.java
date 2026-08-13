@@ -220,8 +220,13 @@ public final class Server {
                                 byte[] png = SurfaceControl.captureDisplayPng(VideoEncode.getCaptureDisplay(), Device.videoSize.first, Device.videoSize.second);
                                 // 多屏折叠设备上 screencap 默认会选到息屏的那块(黑图)，用默认显示的物理ID指定 -d
                                 long captureId = SurfaceControl.getDefaultDisplayPhysicalId();
-                                if (png == null && captureId >= 0)
-                                    png = Device.execReadOutputBytes("screencap -d " + captureId + " -p");
+                                if (png == null && captureId >= 0) {
+                                    try {
+                                        png = Device.execReadOutputBytes("screencap -d " + captureId + " -p");
+                                    } catch (Exception ignored) {
+                                        // -d 物理ID无效等场景下 execReadOutputBytes 会抛异常，须继续回退到不带 -d 的 screencap
+                                    }
+                                }
                                 if (png == null) png = Device.execReadOutputBytes("screencap -p");
                                 ControlPacket.sendScreenshotEvent(png);
                             } catch (Exception ignored) {

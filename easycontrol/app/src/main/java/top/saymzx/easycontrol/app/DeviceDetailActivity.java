@@ -159,7 +159,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
         loading.second.show();
         new Thread(() -> {
             java.util.List<String> scannedAddresses = PublicTools.scanAddress();
-            loading.second.cancel();
+            ViewTools.dismiss(loading.second);
             AppData.uiHandler.post(() -> {
                 // 扫描期间 Activity 可能已销毁（旋转/退出），此时 show 会抛 BadTokenException
                 if (isFinishing() || isDestroyed()) return;

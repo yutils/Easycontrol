@@ -140,7 +140,7 @@ public class DeviceListAdapter extends BaseAdapter {
         Pair<ItemLoadingBinding, Dialog> loading = ViewTools.createLoading(context);
         loading.second.show();
         AdbTools.restartOnTcpip(device, result -> AppData.uiHandler.post(() -> {
-            loading.second.cancel();
+            ViewTools.dismiss(loading.second);
             Toast.makeText(context, context.getString(result ? R.string.toast_success : R.string.toast_fail), Toast.LENGTH_SHORT).show();
         }));
     }
@@ -149,7 +149,7 @@ public class DeviceListAdapter extends BaseAdapter {
         Pair<ItemLoadingBinding, Dialog> loading = ViewTools.createLoading(context);
         loading.second.show();
         AdbTools.runOnceCmd(device, "wm size reset", result -> AppData.uiHandler.post(() -> {
-            loading.second.cancel();
+            ViewTools.dismiss(loading.second);
             Toast.makeText(context, context.getString(result ? R.string.toast_success : R.string.toast_fail), Toast.LENGTH_SHORT).show();
         }));
     }
@@ -160,10 +160,10 @@ public class DeviceListAdapter extends BaseAdapter {
         loading.second.show();
         AdbTools.pushFile(sendFileDevice, inputStream, fileName, process -> AppData.uiHandler.post(() -> {
             if (process < 0) {
-                loading.second.cancel();
+                ViewTools.dismiss(loading.second);
                 Toast.makeText(context, context.getString(R.string.toast_fail), Toast.LENGTH_SHORT).show();
             } else if (process == 100) {
-                loading.second.cancel();
+                ViewTools.dismiss(loading.second);
                 Toast.makeText(context, context.getString(R.string.toast_success), Toast.LENGTH_SHORT).show();
             } else loading.first.text.setText(process + " %");
         }));

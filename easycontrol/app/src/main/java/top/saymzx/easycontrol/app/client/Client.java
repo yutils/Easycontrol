@@ -41,7 +41,7 @@ public class Client {
                 Client existing = allClient.putIfAbsent(device.uuid, this);
                 if (existing != null) {
                     // 已有连接，关闭当前新建的
-                    if (loading.second.isShowing()) loading.second.cancel();
+                    ViewTools.dismiss(loading.second);
                     clientStream.close();
                     return;
                 }
@@ -65,7 +65,7 @@ public class Client {
                     onConnectSuccess.run();
                 }
             }
-            if (loading.second.isShowing()) loading.second.cancel();
+            ViewTools.dismiss(loading.second);
         });
     }
 

@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
+import android.os.Looper;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -108,6 +109,22 @@ public class ViewTools {
             window.setAttributes(layoutParams);
         }
         return new Pair<>(loadingView, dialog);
+    }
+
+    // 安全关闭弹窗：宿主 Activity 可能已被销毁(旋转/退出)，此时 Dialog 的 DecorView 已从 WindowManager 移除，
+    // 直接 dismiss/cancel 会抛 "View not attached to window manager"。
+    // 必须在 UI 线程同步执行并捕获该异常：后台线程调用 Dialog.dismiss 只是把 mDismissAction post 到 UI 线程，异常不会回到调用方。
+    public static void dismiss(Dialog dialog) {
+        if (dialog == null || AppData.uiHandler == null) return;
+        if (Looper.myLooper() != AppData.uiHandler.getLooper()) {
+            AppData.uiHandler.post(() -> dismiss(dialog));
+            return;
+        }
+        try {
+            if (dialog.isShowing()) dialog.cancel();
+        } catch (IllegalArgumentException ignored) {
+            // 宿主 Activity 已销毁，忽略
+        }
     }
 
     // 创建纯文本卡片

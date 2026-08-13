@@ -298,6 +298,11 @@ public class ClientController implements TextureView.SurfaceTextureListener {
         fullView = null;
         if (smallView != null) AppData.uiHandler.post(smallView::hide);
         if (miniView != null) AppData.uiHandler.post(miniView::hide);
+        // 视图切换会迁移 textureView，光标覆盖层须同步从旧容器摘除，否则旧 Activity 视图树被 mParent 链钉住泄漏
+        AppData.uiHandler.post(() -> {
+            if (cursorOverlay != null && cursorOverlay.getParent() != null)
+                ((ViewGroup) cursorOverlay.getParent()).removeView(cursorOverlay);
+        });
     }
 
     public void close() {
@@ -491,7 +496,10 @@ public class ClientController implements TextureView.SurfaceTextureListener {
 
     private void hideCursorOverlay() {
         AppData.uiHandler.post(() -> {
-            if (cursorOverlay != null) cursorOverlay.setVisibility(View.GONE);
+            if (cursorOverlay == null) return;
+            cursorOverlay.setVisibility(View.GONE);
+            // 从父容器摘除：否则 cursorOverlay 的 mParent 链会一直钉住已销毁的 Activity 视图树导致泄漏
+            if (cursorOverlay.getParent() != null) ((ViewGroup) cursorOverlay.getParent()).removeView(cursorOverlay);
         });
     }
 
@@ -787,19 +795,34 @@ public class ClientController implements TextureView.SurfaceTextureListener {
     }
 
     private void parseDf(DeviceStatus s, String section) {
+        // 不依赖挂载点是否为 /data（部分设备 /data 挂在根分区上，df 挂载点列显示为 /），
+        // 也不假设大小为纯数字（部分 ROM 的 df 默认人类可读，如 "6.2G"）：取第一条含数字总量/已用的数据行。
         for (String line : section.split("\n")) {
-            String t = line.trim();
-            if (t.endsWith("/data")) {
-                String[] p = t.split("\\s+");
-                if (p.length >= 3) {
-                    try {
-                        s.storageTotalKb = Long.parseLong(p[1]);
-                        s.storageUsedKb = Long.parseLong(p[2]);
-                    } catch (NumberFormatException ignored) {
-                    }
-                }
-                break;
+            String[] p = line.trim().split("\\s+");
+            if (p.length < 3) continue;
+            Long total = toKb(p[1]);
+            Long used = toKb(p[2]);
+            if (total != null && total > 0) {
+                s.storageTotalKb = total;
+                if (used != null) s.storageUsedKb = used;
+                return;
             }
+        }
+    }
+
+    // 把 df 的大小列换算成 KB：纯数字按 1K 块，带 G/M/K/T 后缀按人类可读换算；无法识别返回 null
+    private Long toKb(String v) {
+        if (v == null) return null;
+        String s2 = v.trim().toUpperCase(Locale.US);
+        long mult = 1;
+        if (s2.endsWith("G")) { mult = 1024 * 1024; s2 = s2.substring(0, s2.length() - 1); }
+        else if (s2.endsWith("M")) { mult = 1024; s2 = s2.substring(0, s2.length() - 1); }
+        else if (s2.endsWith("K")) { s2 = s2.substring(0, s2.length() - 1); }
+        else if (s2.endsWith("T")) { mult = 1024 * 1024 * 1024; s2 = s2.substring(0, s2.length() - 1); }
+        try {
+            return (long) (Double.parseDouble(s2) * mult);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

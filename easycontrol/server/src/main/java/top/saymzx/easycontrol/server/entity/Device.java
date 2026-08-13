@@ -286,7 +286,9 @@ public final class Device {
         coords[0].x = mouseX;
         coords[0].y = mouseY;
         if (action == MotionEvent.ACTION_SCROLL) coords[0].setAxisValue(MotionEvent.AXIS_VSCROLL, data);
-        int buttonState = (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP) ? (int) data : 0;
+        // buttonState 语义是「当前被按住按键的位图」：DOWN 时携带按下的按键，UP 时按键已松开必须为 0，
+        // 否则被控机侧会认为按键仍处于按住状态(按钮高亮残留/长按误判)
+        int buttonState = (action == MotionEvent.ACTION_DOWN) ? (int) data : 0;
         MotionEvent event = MotionEvent.obtain(downTime, now, action, 1, properties, coords, 0, buttonState, 1f, 1f, 0, 0, InputDevice.SOURCE_MOUSE, 0);
         injectEvent(event);
     }

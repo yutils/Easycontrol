@@ -280,6 +280,8 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
             }
             final ClientController.DeviceStatus statusFinal = status;
             runOnUiThread(() -> {
+                // shell 返回期间 Activity 可能已被 finish(Home/切小窗/断连)，此时 dialog.show() 会抛 BadTokenException
+                if (isFinishing() || isDestroyed()) return;
                 if (statusFinal == null) {
                     PublicTools.logToast("FullActivity", getString(R.string.toast_status_failed), true);
                     return;

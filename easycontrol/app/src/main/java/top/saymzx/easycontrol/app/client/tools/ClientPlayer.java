@@ -32,6 +32,8 @@ public class ClientPlayer {
     // 心跳超时检测：超过该时间未收到任何数据(含心跳响应)则认为连接断开
     private static final int KEEP_ALIVE_TIMEOUT = 1000 * 10;
     private volatile long lastReceiveTime = System.currentTimeMillis();
+    // 正在接收大载荷(如截图PNG)：此时连接仍是活的，只是主流被阻塞在整段读取，须暂停心跳超时判定
+    private volatile boolean receivingLargePayload = false;
 
     // ===== 远程录屏(客户端把收到的编码帧直接写 MediaMuxer) =====
     // 所有录屏状态只在视频线程接触，避免竞争
@@ -89,8 +91,15 @@ public class ClientPlayer {
                         // 心跳响应，无需处理
                         break;
                     case SCREENSHOT_EVENT:
-                        // 远程截图PNG数据，长度0表示截图失败
-                        clientController.handleAction("saveScreenshot", clientStream.readByteArrayFromMain(clientStream.readIntFromMain()), 0);
+                        // 远程截图PNG数据，长度0表示截图失败。
+                        // 大分辨率回退 screencap 会产生数 MB~数十 MB 的 PNG，慢链路上整段读取可能超过心跳超时，
+                        // 读取期间暂停心跳判定(连接仍是活的)；读取抛异常说明连接真断了，finally 复位后照常检测。
+                        receivingLargePayload = true;
+                        try {
+                            clientController.handleAction("saveScreenshot", clientStream.readByteArrayFromMain(clientStream.readIntFromMain()), 0);
+                        } finally {
+                            receivingLargePayload = false;
+                        }
                         break;
                 }
             }
@@ -192,6 +201,6 @@ public class ClientPlayer {
 
     // 检查心跳是否超时（连接异常断开）
     public boolean isKeepAliveTimeout() {
-        return System.currentTimeMillis() - lastReceiveTime > KEEP_ALIVE_TIMEOUT;
+        return !receivingLargePayload && System.currentTimeMillis() - lastReceiveTime > KEEP_ALIVE_TIMEOUT;
     }
 }
