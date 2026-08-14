@@ -815,10 +815,18 @@ public class ClientController implements TextureView.SurfaceTextureListener {
         if (v == null) return null;
         String s2 = v.trim().toUpperCase(Locale.US);
         long mult = 1;
-        if (s2.endsWith("G")) { mult = 1024 * 1024; s2 = s2.substring(0, s2.length() - 1); }
-        else if (s2.endsWith("M")) { mult = 1024; s2 = s2.substring(0, s2.length() - 1); }
-        else if (s2.endsWith("K")) { s2 = s2.substring(0, s2.length() - 1); }
-        else if (s2.endsWith("T")) { mult = 1024 * 1024 * 1024; s2 = s2.substring(0, s2.length() - 1); }
+        if (s2.endsWith("G")) {
+            mult = 1024 * 1024;
+            s2 = s2.substring(0, s2.length() - 1);
+        } else if (s2.endsWith("M")) {
+            mult = 1024;
+            s2 = s2.substring(0, s2.length() - 1);
+        } else if (s2.endsWith("K")) {
+            s2 = s2.substring(0, s2.length() - 1);
+        } else if (s2.endsWith("T")) {
+            mult = 1024 * 1024 * 1024;
+            s2 = s2.substring(0, s2.length() - 1);
+        }
         try {
             return (long) (Double.parseDouble(s2) * mult);
         } catch (NumberFormatException e) {
