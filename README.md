@@ -15,6 +15,10 @@
 - 移除捐赠 / 激活逻辑，永久免费使用
 - 兼容被控端为安卓15以上系统
 - Scrcpy升级到最新版
+- 新增新增远程截图
+- 新增虚拟鼠标
+- 新增远程音量调节功能 （可配置断开后设备静音）
+- 新增设备状态面板
 
 ### 二、UI 全面现代化
 - 引入appcompat主题（APK体积变大）
@@ -32,7 +36,6 @@
 - 适配 `SurfaceControl` 静态方法移除：`setDisplaySurface`/`setDisplayProjection`/`setDisplayLayerStack` 改用 `SurfaceControl.Transaction` 对象（仅 Android 15+ 启用，Android 14 及以下保留静态方法，兼容性最佳）
 - 适配 `AudioRecord` 的 `native_setup` 签名变更（Android 14 QPR3 / 15）
 - 适配 `WindowManager` 的 `caller` 参数变更
-- 禁用 Server 模块 R8 混淆，解决 Android 15 ART 运行时 ClassNotFoundException
 
 ### 四、Scrcpy 协议同步至 v4.x
 - 低延迟编码参数：`KEY_PRIORITY`、`KEY_LATENCY`
@@ -40,23 +43,9 @@
 - 视频编码参数优化
 
 ### 五、Bug 修复（40+ 项）
-**崩溃与资源泄漏**
-- 修复 `Client.close()` 连接失败时 NPE 导致资源无法释放
-- 修复 `ClientStream` 未关闭 ADB Socket 和 Shell 进程导致端口占用、重连失败
-- 修复 `MyBroadcastReceiver.updateUSB` 中 `return` 误用为 `continue`，导致后续 USB 设备被跳过
-- 修复 `MainActivity` URI 为空时 NPE 崩溃
-- 修复 `DeviceDetailActivity` 未处理 `Integer.parseInt` 异常
-- 修复 `FullActivity` client 为 null 时死锁
-
-**逻辑错误**
-- 修复 `Device.java` appStackId 条件判断反转
-- 修复 `ClientController` switch 语句 default 穿透
-- 修复 `DbHelper` 删除设备后默认名称重复
-- 修复 `DeviceListAdapter` 随机颜色导致列表闪烁
-
-**连接稳定性**
-- 启动 Server 前清理残留进程，避免端口冲突
-- 连接断开时正确释放所有资源
+- 崩溃与资源泄漏
+- 逻辑错误
+- 连接稳定性
 
 ### 六、功能调整
 - 启动时主动申请所需权限（悬浮窗、文件读取、前台服务、通知）
