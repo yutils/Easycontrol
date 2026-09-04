@@ -55,8 +55,8 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
             return;
         }
         clientController.setFullView(this);
-        // 初始化
-        activityFullBinding.barView.setVisibility(View.VISIBLE);
+        // 初始化（工具栏默认收起，点击导航栏 ⋮ 或悬浮球展开）
+        activityFullBinding.barView.setVisibility(View.GONE);
         setNavBarHide(device.showNavBarOnConnect);
         autoRotate = AppData.setting.getAutoRotate();
         activityFullBinding.buttonAutoRotate.setImageResource(autoRotate ? R.drawable.un_auto : R.drawable.auto);
