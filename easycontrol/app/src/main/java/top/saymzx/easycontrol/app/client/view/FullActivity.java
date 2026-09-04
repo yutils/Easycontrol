@@ -56,7 +56,7 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
         }
         clientController.setFullView(this);
         // 初始化
-        activityFullBinding.barView.setVisibility(View.GONE);
+        activityFullBinding.barView.setVisibility(View.VISIBLE);
         setNavBarHide(device.showNavBarOnConnect);
         autoRotate = AppData.setting.getAutoRotate();
         activityFullBinding.buttonAutoRotate.setImageResource(autoRotate ? R.drawable.un_auto : R.drawable.auto);
@@ -147,8 +147,22 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
             changeBarView();
         });
         activityFullBinding.buttonNavBar.setOnClickListener(v -> {
-            setNavBarHide(activityFullBinding.navBar.getVisibility() == View.GONE);
-            changeBarView();
+            boolean showNav = activityFullBinding.navBar.getVisibility() == View.GONE;
+            setNavBarHide(showNav);
+            // PATCH: 隐藏导航栏时工具栏一并收成悬浮球(画面干净); 显示导航时工具栏展开
+            if (showNav) {
+                // nav 要显示 → barView 展开, 悬浮球隐藏
+                if (activityFullBinding.barView.getVisibility() != View.VISIBLE) {
+                    activityFullBinding.barView.setVisibility(View.VISIBLE);
+                    activityFullBinding.volumeBar.setVisibility(View.GONE);
+                }
+                activityFullBinding.buttonFloat.setVisibility(View.GONE);
+            } else {
+                // nav 要隐藏 → barView 收成悬浮球
+                activityFullBinding.barView.setVisibility(View.GONE);
+                activityFullBinding.volumeBar.setVisibility(View.GONE);
+                activityFullBinding.buttonFloat.setVisibility(View.VISIBLE);
+            }
         });
         activityFullBinding.buttonPower.setOnClickListener(v -> {
             clientController.handleAction("buttonPower", null, 0);
@@ -195,7 +209,20 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-        activityFullBinding.buttonMore.setOnClickListener(v -> changeBarView());
+        activityFullBinding.buttonMore.setOnClickListener(v -> {
+            // PATCH: ⋮ 收起 barView 为悬浮球 (悬浮球是常驻入口, 不会死锁)
+            if (activityFullBinding.barView.getVisibility() == View.VISIBLE) {
+                activityFullBinding.barView.setVisibility(View.GONE);
+                activityFullBinding.volumeBar.setVisibility(View.GONE);
+                activityFullBinding.buttonFloat.setVisibility(View.VISIBLE);
+            }
+        });
+        activityFullBinding.buttonFloat.setOnClickListener(v -> {
+            // PATCH: 点悬浮球展开完整 barView 工具栏
+            activityFullBinding.barView.setVisibility(View.VISIBLE);
+            activityFullBinding.buttonFloat.setVisibility(View.GONE);
+            showBarViewAnim();
+        });
         activityFullBinding.buttonAutoRotate.setOnClickListener(v -> {
             autoRotate = !autoRotate;
             AppData.setting.setAutoRotate(autoRotate);
@@ -207,6 +234,10 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
     private void setNavBarHide(boolean isShow) {
         activityFullBinding.navBar.setVisibility(isShow ? View.VISIBLE : View.GONE);
         activityFullBinding.buttonNavBar.setImageResource(isShow ? R.drawable.not_equal : R.drawable.equals);
+        // PATCH: 悬浮球自动贴底 —— nav_bar 显示时浮在其上方(56dp), 隐藏时贴屏幕底部(8dp)
+        android.view.ViewGroup.MarginLayoutParams lp = (android.view.ViewGroup.MarginLayoutParams) activityFullBinding.buttonFloat.getLayoutParams();
+        lp.bottomMargin = PublicTools.dp2px(isShow ? 56f : 8f);
+        activityFullBinding.buttonFloat.setLayoutParams(lp);
         activityFullBinding.textureViewLayout.post(this::updateMaxSize);
         // 菜单按钮始终在深色背景上（全屏画面或半透明黑导航栏），统一用白色图标
         activityFullBinding.buttonMore.setImageTintList(ColorStateList.valueOf(getResources().getColor(R.color.onBlackBacnground)));
@@ -214,16 +245,25 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
 
     private void changeBarView() {
         boolean toShowView = activityFullBinding.barView.getVisibility() == View.GONE;
+        if (toShowView) {
+            // PATCH: 展开时隐藏悬浮球
+            activityFullBinding.buttonFloat.setVisibility(View.GONE);
+            showBarViewAnim();
+        } else {
+            // PATCH: 收起时显示悬浮球作为常驻入口(防死锁)
+            activityFullBinding.barView.setVisibility(View.GONE);
+            activityFullBinding.volumeBar.setVisibility(View.GONE);
+            activityFullBinding.buttonFloat.setVisibility(View.VISIBLE);
+        }
+    }
+
+    // PATCH: barView 滑入动画(横屏右上/竖屏左下)
+    private void showBarViewAnim() {
         boolean isLandscape = lastOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE || lastOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
-        // 横屏：工具栏在右上角，从右侧水平滑入；竖屏：工具栏在左下角，从下方垂直滑入
         int tx = isLandscape ? PublicTools.dp2px(40f) : 0;
         int ty = isLandscape ? 0 : PublicTools.dp2px(40f);
-        ViewTools.viewAnim(activityFullBinding.barView, toShowView, tx, ty, (isStart -> {
-            if (isStart && toShowView) activityFullBinding.barView.setVisibility(View.VISIBLE);
-            else if (!isStart && !toShowView) {
-                activityFullBinding.barView.setVisibility(View.GONE);
-                activityFullBinding.volumeBar.setVisibility(View.GONE);
-            }
+        ViewTools.viewAnim(activityFullBinding.barView, true, tx, ty, (isStart -> {
+            if (isStart) activityFullBinding.barView.setVisibility(View.VISIBLE);
         }));
     }
 
