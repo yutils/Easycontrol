@@ -304,4 +304,19 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <!-- 悬浮球: 工具栏收起且导航栏隐藏时的兜底入口, 点击重新展开工具栏(右上角与工具栏位置风格统一) -->
+    <ImageView
+        android:id="@+id/button_float"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="56dp"
+        android:background="@android:color/transparent"
+        android:focusable="false"
+        android:padding="12dp"
+        android:src="@drawable/more"
+        android:visibility="gone"
+        app:tint="@color/onBlackBacnground" />
 </FrameLayout>

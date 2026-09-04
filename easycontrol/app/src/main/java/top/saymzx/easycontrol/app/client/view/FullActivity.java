@@ -149,20 +149,8 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
         activityFullBinding.buttonNavBar.setOnClickListener(v -> {
             boolean showNav = activityFullBinding.navBar.getVisibility() == View.GONE;
             setNavBarHide(showNav);
-            // PATCH: 隐藏导航栏时工具栏一并收成悬浮球(画面干净); 显示导航时工具栏展开
-            if (showNav) {
-                // nav 要显示 → barView 展开, 悬浮球隐藏
-                if (activityFullBinding.barView.getVisibility() != View.VISIBLE) {
-                    activityFullBinding.barView.setVisibility(View.VISIBLE);
-                    activityFullBinding.volumeBar.setVisibility(View.GONE);
-                }
-                activityFullBinding.buttonFloat.setVisibility(View.GONE);
-            } else {
-                // nav 要隐藏 → barView 收成悬浮球
-                activityFullBinding.barView.setVisibility(View.GONE);
-                activityFullBinding.volumeBar.setVisibility(View.GONE);
-                activityFullBinding.buttonFloat.setVisibility(View.VISIBLE);
-            }
+            // 隐藏导航栏时工具栏一并收起(画面干净)，悬浮球自动兜底；显示导航栏时 ⋮ 可用，无需悬浮球
+            if (!showNav) collapseBarView();
         });
         activityFullBinding.buttonPower.setOnClickListener(v -> {
             clientController.handleAction("buttonPower", null, 0);
@@ -210,19 +198,11 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
             }
         });
         activityFullBinding.buttonMore.setOnClickListener(v -> {
-            // PATCH: ⋮ 收起 barView 为悬浮球 (悬浮球是常驻入口, 不会死锁)
-            if (activityFullBinding.barView.getVisibility() == View.VISIBLE) {
-                activityFullBinding.barView.setVisibility(View.GONE);
-                activityFullBinding.volumeBar.setVisibility(View.GONE);
-                activityFullBinding.buttonFloat.setVisibility(View.VISIBLE);
-            }
+            // ⋮ 双向切换工具栏：收起后若导航栏也隐藏，悬浮球自动兜底
+            if (activityFullBinding.barView.getVisibility() == View.VISIBLE) collapseBarView();
+            else expandBarView();
         });
-        activityFullBinding.buttonFloat.setOnClickListener(v -> {
-            // PATCH: 点悬浮球展开完整 barView 工具栏
-            activityFullBinding.barView.setVisibility(View.VISIBLE);
-            activityFullBinding.buttonFloat.setVisibility(View.GONE);
-            showBarViewAnim();
-        });
+        activityFullBinding.buttonFloat.setOnClickListener(v -> expandBarView());
         activityFullBinding.buttonAutoRotate.setOnClickListener(v -> {
             autoRotate = !autoRotate;
             AppData.setting.setAutoRotate(autoRotate);
@@ -234,32 +214,47 @@ public class FullActivity extends AppCompatActivity implements SensorEventListen
     private void setNavBarHide(boolean isShow) {
         activityFullBinding.navBar.setVisibility(isShow ? View.VISIBLE : View.GONE);
         activityFullBinding.buttonNavBar.setImageResource(isShow ? R.drawable.not_equal : R.drawable.equals);
-        // PATCH: 悬浮球自动贴底 —— nav_bar 显示时浮在其上方(56dp), 隐藏时贴屏幕底部(8dp)
-        android.view.ViewGroup.MarginLayoutParams lp = (android.view.ViewGroup.MarginLayoutParams) activityFullBinding.buttonFloat.getLayoutParams();
-        lp.bottomMargin = PublicTools.dp2px(isShow ? 56f : 8f);
+        // 悬浮球自动贴边：竖屏避开底部导航栏，横屏避开右侧导航栏，导航栏隐藏时贴屏幕边缘
+        boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) activityFullBinding.buttonFloat.getLayoutParams();
+        int margin = PublicTools.dp2px(isShow ? 56f : 8f);
+        if (isLandscape) lp.rightMargin = margin;
+        else lp.bottomMargin = margin;
         activityFullBinding.buttonFloat.setLayoutParams(lp);
+        updateFloatBallVisibility();
         activityFullBinding.textureViewLayout.post(this::updateMaxSize);
         // 菜单按钮始终在深色背景上（全屏画面或半透明黑导航栏），统一用白色图标
         activityFullBinding.buttonMore.setImageTintList(ColorStateList.valueOf(getResources().getColor(R.color.onBlackBacnground)));
     }
 
     private void changeBarView() {
-        boolean toShowView = activityFullBinding.barView.getVisibility() == View.GONE;
-        if (toShowView) {
-            // PATCH: 展开时隐藏悬浮球
-            activityFullBinding.buttonFloat.setVisibility(View.GONE);
-            showBarViewAnim();
-        } else {
-            // PATCH: 收起时显示悬浮球作为常驻入口(防死锁)
-            activityFullBinding.barView.setVisibility(View.GONE);
-            activityFullBinding.volumeBar.setVisibility(View.GONE);
-            activityFullBinding.buttonFloat.setVisibility(View.VISIBLE);
-        }
+        if (activityFullBinding.barView.getVisibility() == View.VISIBLE) collapseBarView();
+        else expandBarView();
     }
 
-    // PATCH: barView 滑入动画(横屏右上/竖屏左下)
+    // 收起工具栏(音量条一并收起)；若导航栏同时隐藏则悬浮球兜底
+    private void collapseBarView() {
+        activityFullBinding.barView.setVisibility(View.GONE);
+        activityFullBinding.volumeBar.setVisibility(View.GONE);
+        updateFloatBallVisibility();
+    }
+
+    // 展开工具栏，悬浮球隐藏
+    private void expandBarView() {
+        activityFullBinding.buttonFloat.setVisibility(View.GONE);
+        showBarViewAnim();
+    }
+
+    // 悬浮球仅在「工具栏收起且导航栏隐藏」时显示(此时导航栏上的 ⋮ 不可见，悬浮球是防死锁兜底入口)
+    private void updateFloatBallVisibility() {
+        boolean needFloat = activityFullBinding.barView.getVisibility() == View.GONE
+                && activityFullBinding.navBar.getVisibility() == View.GONE;
+        activityFullBinding.buttonFloat.setVisibility(needFloat ? View.VISIBLE : View.GONE);
+    }
+
+    // barView 滑入动画(横屏从右侧滑入/竖屏从下方滑入)
     private void showBarViewAnim() {
-        boolean isLandscape = lastOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE || lastOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+        boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
         int tx = isLandscape ? PublicTools.dp2px(40f) : 0;
         int ty = isLandscape ? 0 : PublicTools.dp2px(40f);
         ViewTools.viewAnim(activityFullBinding.barView, true, tx, ty, (isStart -> {
