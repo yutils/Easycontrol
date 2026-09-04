@@ -303,4 +303,19 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <!-- 悬浮球: barView 收起时保留的小入口, 点击重新展开工具栏 -->
+    <ImageView
+        android:id="@+id/button_float"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="@dimen/spaceMd"
+        android:layout_marginBottom="56dp"
+        android:background="@android:color/transparent"
+        android:focusable="false"
+        android:padding="12dp"
+        android:src="@drawable/more"
+        android:visibility="gone"
+        app:tint="@color/onBlackBacnground" />
 </FrameLayout>
